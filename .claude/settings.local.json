@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd /c node --version)",
+      "Bash(cmd /c npm --version)",
+      "Bash(cmd /c npx --version)",
+      "Bash(powershell -Command \"node --version; npm --version\")",
+      "Bash(powershell -Command \"Get-Command node -ErrorAction SilentlyContinue; [System.Environment]::GetEnvironmentVariable\\(''PATH'', ''Machine''\\) | Out-String\")",
+      "Bash(\"/c/Program Files/nodejs/node\" --version)",
+      "Bash(\"/c/Program Files/nodejs/npm\" --version)",
+      "Bash(\"/c/Program Files/nodejs/npm\" install)"
+    ]
+  }
+}
