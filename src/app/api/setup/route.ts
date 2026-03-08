@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import fs from "fs";
+import path from "path";
 
 export async function GET() {
     try {
@@ -25,38 +27,54 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { name, email, password, allowedIps, workDayStart, workDayEnd } = body;
+        const { name, email, password, allowedIps, workDayStart, workDayEnd, backupData, backupName } = body;
 
-        if (!name || !email || !password) {
+        // Se houver backup, tentar restaurar primeiro
+        if (backupData) {
+            console.log(`[SETUP] Importação de backup detectada: ${backupName}`);
+            const dbUrl = process.env.DATABASE_URL || '';
+
+            if (dbUrl.startsWith('file:')) {
+                const dbPath = path.join(process.cwd(), dbUrl.replace('file:', ''));
+                const buffer = Buffer.from(backupData, 'base64');
+                fs.writeFileSync(dbPath, buffer);
+                console.log(`[SETUP] Banco SQLite restaurado via importação.`);
+            }
+            // Para SQL puro (via scripts .sql), poderíamos executar o dump aqui.
+        }
+
+        if (!backupData && (!name || !email || !password)) {
             return NextResponse.json(
                 { error: "Todos os campos obrigatórios devem ser preenchidos." },
                 { status: 400 }
             );
         }
 
-        // 2. Criar o usuário administrador
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: "admin",
-                allowedIps: allowedIps || "*",
-                workDayStart: workDayStart || null,
-                workDayEnd: workDayEnd || null,
-            },
-        });
+        // 2. Criar o usuário administrador (Somente se não houver backup ou se quiser garantir um novo admin)
+        let user;
+        if (name && email && password) {
+            const hashedPassword = await bcrypt.hash(password, 12);
+            user = await prisma.user.create({
+                data: {
+                    name,
+                    email,
+                    password: hashedPassword,
+                    role: "admin",
+                    allowedIps: allowedIps || "*",
+                    workDayStart: workDayStart || null,
+                    workDayEnd: workDayEnd || null,
+                },
+            });
+        }
 
         return NextResponse.json({
             success: true,
-            message: "Administrador criado com sucesso!",
-            user: {
+            message: backupData ? "Sistema restaurado com sucesso!" : "Administrador criado com sucesso!",
+            user: user ? {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-            }
+            } : null
         });
     } catch (error) {
         console.error("[SETUP_API_ERROR]", error);

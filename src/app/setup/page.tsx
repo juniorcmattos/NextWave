@@ -38,6 +38,7 @@ export default function SetupPage() {
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
+    const [backupData, setBackupData] = useState<{ data: string, name: string } | null>(null);
 
     useEffect(() => {
         async function checkStatus() {
@@ -82,6 +83,8 @@ export default function SetupPage() {
                     workDayStart: data.workDayStart,
                     workDayEnd: data.workDayEnd,
                     dbUrl: data.dbUrl,
+                    backupData: backupData?.data,
+                    backupName: backupData?.name,
                 }),
             });
 
@@ -230,7 +233,16 @@ export default function SetupPage() {
                                                         className="cursor-pointer file:cursor-pointer"
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0];
-                                                            if (file) toast.success(`Arquivo ${file.name} pronto para importação`);
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = (event) => {
+                                                                    const result = event.target?.result as string;
+                                                                    const base64 = result.split(',')[1];
+                                                                    setBackupData({ data: base64, name: file.name });
+                                                                    toast.success(`Arquivo ${file.name} pronto para importação`);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
                                                         }}
                                                     />
                                                 </div>
