@@ -8,7 +8,7 @@ const BACKUP_DIR = path.join(process.cwd(), 'data', 'backups');
 
 export async function POST(req: Request) {
     const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session.user?.role?.toUpperCase() !== "ADMIN") {
         return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
@@ -23,9 +23,22 @@ export async function POST(req: Request) {
         const dbUrl = process.env.DATABASE_URL || '';
 
         if (dbUrl.startsWith('file:')) {
-            const dbPath = path.join(process.cwd(), dbUrl.replace('file:', ''));
+            let dbRelativePath = dbUrl.replace('file:', '');
+            let dbPath = path.join(process.cwd(), dbRelativePath);
 
-            // 1. Criar um backup temporário do banco atual por segurança
+            // Tentar resolver relativo ao diretório prisma se não existir na raiz
+            if (!fs.existsSync(dbPath)) {
+                const prismaDbPath = path.join(process.cwd(), 'prisma', dbRelativePath.replace('./', ''));
+                if (fs.existsSync(prismaDbPath)) {
+                    dbPath = prismaDbPath;
+                }
+            }
+
+            // 1. Desconectar o Prisma para liberar o bloqueio de arquivo no Windows
+            const { prisma } = await import("@/lib/db");
+            await prisma.$disconnect();
+
+            // 2. Criar um backup temporário do banco atual por segurança
             const safetyBackup = `${dbPath}.safety`;
             fs.copyFileSync(dbPath, safetyBackup);
 

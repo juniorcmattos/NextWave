@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, Filter, Phone, Mail, Building2, Trash2, Edit, Eye, MapPin } from "lucide-react";
+import { Plus, Search, Filter, Phone, Mail, Building2, Trash2, Edit, Eye, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,16 +18,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Client } from "@/types";
 import { formatDate, getInitials, getStatusLabel } from "@/lib/utils";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { IMaskInput } from "react-imask";
 
 const clienteSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  document: z.string().optional(),
+  email: z.string().email("Email obrigatório"),
+  phones: z.array(z.object({ value: z.string().min(1, "Mínimo 1 telefone") })).min(1, "Adicione pelo menos um telefone"),
+  document: z.string().min(1, "CPF/CNPJ obrigatório"),
   company: z.string().optional(),
   zipCode: z.string().optional(),
   address: z.string().optional(),
@@ -60,7 +60,12 @@ export default function ClientesPage() {
 
   const { register, handleSubmit, reset, setValue, watch, control, formState: { errors, isSubmitting } } = useForm<ClienteForm>({
     resolver: zodResolver(clienteSchema),
-    defaultValues: { status: "ativo" },
+    defaultValues: { status: "ativo", phones: [{ value: "" }] },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "phones",
   });
 
   const fetchClientes = useCallback(async () => {
@@ -89,7 +94,7 @@ export default function ClientesPage() {
     reset({
       name: "",
       email: "",
-      phone: "",
+      phones: [{ value: "" }],
       document: "",
       company: "",
       zipCode: "",
@@ -104,10 +109,14 @@ export default function ClientesPage() {
 
   const openEdit = (cliente: ClienteComCount) => {
     setEditingCliente(cliente);
+    const phones = cliente.phone
+      ? cliente.phone.split(",").map(p => ({ value: p.trim() }))
+      : [{ value: "" }];
+
     reset({
       name: cliente.name,
       email: cliente.email ?? "",
-      phone: cliente.phone ?? "",
+      phones: phones,
       document: cliente.document ?? "",
       company: cliente.company ?? "",
       zipCode: cliente.zipCode ?? "",
@@ -122,12 +131,17 @@ export default function ClientesPage() {
 
   const onSubmit = async (data: ClienteForm) => {
     try {
+      const payload = {
+        ...data,
+        phone: data.phones.map(p => p.value).filter(Boolean).join(", ")
+      };
+
       const url = editingCliente ? `/api/clientes/${editingCliente.id}` : "/api/clientes";
       const method = editingCliente ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       toast.success(editingCliente ? "Cliente atualizado!" : "Cliente criado!");
@@ -292,24 +306,58 @@ export default function ClientesPage() {
                 <Input type="email" placeholder="email@exemplo.com" {...register("email")} />
                 {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <IMaskInput
-                      mask="(00) 00000-0000"
-                      definitions={{
-                        '#': /[1-9]/,
-                      }}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="(11) 99999-9999"
-                      value={field.value}
-                      onAccept={(value: string) => field.onChange(value)}
-                    />
-                  )}
-                />
+              <div className="col-span-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Telefones (Mínimo 1) *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => append({ value: "" })}
+                  >
+                    <Plus className="h-3 w-3" /> Adicionar
+                  </Button>
+                </div>
+                {fields.map((field, index) => (
+                  <div key={field.id} className="space-y-1">
+                    <div className="flex gap-2">
+                      <Controller
+                        name={`phones.${index}.value`}
+                        control={control}
+                        render={({ field: fieldProps }) => (
+                          <IMaskInput
+                            mask={[
+                              { mask: "(00) 0000-0000" },
+                              { mask: "(00) 00000-0000" }
+                            ]}
+                            className="flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder="(11) 99999-9999"
+                            value={fieldProps.value}
+                            onAccept={(value: string) => fieldProps.onChange(value)}
+                          />
+                        )}
+                      />
+                      {fields.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-destructive hover:bg-destructive/10"
+                          onClick={() => remove(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    {errors.phones?.[index]?.value && (
+                      <p className="text-[10px] text-destructive italic">{errors.phones[index]?.value?.message}</p>
+                    )}
+                  </div>
+                ))}
+                {errors.phones?.message && !errors.phones[0] && (
+                  <p className="text-xs text-destructive">{errors.phones.message}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>CPF/CNPJ</Label>

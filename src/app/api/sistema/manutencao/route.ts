@@ -8,7 +8,7 @@ const BACKUP_DIR = path.join(process.cwd(), 'data', 'backups');
 
 export async function GET() {
     const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session.user?.role?.toUpperCase() !== "ADMIN") {
         return NextResponse.json({ error: "Acesso restrito ao administrador" }, { status: 403 });
     }
 
@@ -37,17 +37,24 @@ export async function GET() {
 
 export async function POST(req: Request) {
     const session = await auth();
-    if (!session || session.user?.role !== "ADMIN") {
+    if (!session || session.user?.role?.toUpperCase() !== "ADMIN") {
         return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     try {
-        // Executa o script de backup via tsx
-        execSync('npx tsx scripts/backup.ts', { stdio: 'inherit' });
+        // Executa o script de backup via node com tsx register para evitar npx/shell issues no Windows
+        const scriptPath = path.join(process.cwd(), 'scripts', 'backup.ts');
+        execSync(`node --import tsx "${scriptPath}"`, {
+            stdio: 'pipe',
+            env: { ...process.env, NODE_ENV: 'production' }
+        });
         return NextResponse.json({ success: true, message: "Backup gerado com sucesso" });
-    } catch (error) {
-        console.error("[BACKUP_POST_ERROR]", error);
-        return NextResponse.json({ error: "Erro ao disparar backup" }, { status: 500 });
+    } catch (error: any) {
+        console.error("[BACKUP_POST_ERROR]", error.stderr?.toString() || error.message);
+        return NextResponse.json({
+            error: "Erro ao disparar backup",
+            details: error.stderr?.toString() || error.message
+        }, { status: 500 });
     }
 }
 

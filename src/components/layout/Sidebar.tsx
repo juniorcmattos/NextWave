@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -33,11 +33,25 @@ export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
+  // Carregar estado inicial do localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-collapsed");
+    if (saved !== null) {
+      setCollapsed(saved === "true");
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem("sidebar-collapsed", String(newState));
+  };
+
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "relative flex flex-col border-r border-border bg-card transition-all duration-300 ease-in-out",
+          "relative hidden flex-col border-r border-border bg-card transition-all duration-300 ease-in-out sm:flex",
           collapsed ? "w-16" : "w-64"
         )}
       >
@@ -156,7 +170,7 @@ export function Sidebar() {
           variant="outline"
           size="icon"
           className="absolute -right-3 top-20 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-md"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleSidebar}
         >
           {collapsed ? (
             <ChevronRight className="h-3 w-3" />

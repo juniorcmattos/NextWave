@@ -18,7 +18,21 @@ async function runBackup() {
     try {
         if (dbUrl.startsWith('file:')) {
             // SQLite Backup
-            const dbPath = path.join(process.cwd(), dbUrl.replace('file:', ''));
+            let dbRelativePath = dbUrl.replace('file:', '');
+            let dbPath = path.join(process.cwd(), dbRelativePath);
+
+            // Tentar resolver relativo ao diretório prisma se não existir na raiz
+            if (!fs.existsSync(dbPath)) {
+                const prismaDbPath = path.join(process.cwd(), 'prisma', dbRelativePath.replace('./', ''));
+                if (fs.existsSync(prismaDbPath)) {
+                    dbPath = prismaDbPath;
+                }
+            }
+
+            if (!fs.existsSync(dbPath)) {
+                throw new Error(`Arquivo de banco de dados não encontrado em: ${dbPath}`);
+            }
+
             const backupPath = path.join(BACKUP_DIR, `backup-${timestamp}.db`);
             fs.copyFileSync(dbPath, backupPath);
             console.log(`[BACKUP] SQLite backup concluído: ${backupPath}`);
