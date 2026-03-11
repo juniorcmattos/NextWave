@@ -55,8 +55,7 @@ export async function POST(req: Request) {
                             description: `Faturamento Mensal - ${sub.name}`,
                             type: "receita",
                             category: "servicos",
-                            status: "pendente",
-                            nfeStatus: "processing"
+                            status: "pendente"
                         }
                     });
                     count++;
