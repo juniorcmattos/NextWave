@@ -38,6 +38,32 @@ export async function POST(req: Request) {
                 result = "Backup simulado com sucesso.";
                 break;
 
+            case "nfe_batch":
+                // Lógica de faturamento em lote
+                const activeSubscriptions = await prisma.subscription.findMany({
+                    where: { status: "active" },
+                    include: { client: true }
+                });
+
+                let count = 0;
+                for (const sub of activeSubscriptions) {
+                    await prisma.transaction.create({
+                        data: {
+                            userId: sub.userId,
+                            clientId: sub.clientId,
+                            amount: sub.amount,
+                            description: `Faturamento Mensal - ${sub.name}`,
+                            type: "receita",
+                            category: "servicos",
+                            status: "pendente",
+                            nfeStatus: "processing"
+                        }
+                    });
+                    count++;
+                }
+                result = `Processamento em lote concluído: ${count} notas geradas.`;
+                break;
+
             default:
                 result = `Tipo de tarefa ${task.type} ainda não implementado no worker.`;
                 success = false;

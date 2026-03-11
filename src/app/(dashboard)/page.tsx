@@ -5,6 +5,7 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { GrowthChart } from "@/components/dashboard/GrowthChart";
 import { TopClients } from "@/components/dashboard/TopClients";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
+import { Badge } from "@/components/ui/badge";
 import { FinanceWidget, WhatsAppWidget, BackupWidget, TasksWidget } from "@/components/dashboard/DashboardWidgets";
 
 async function getDashboardData(userId: string) {
@@ -136,28 +137,26 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header da página */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {saudacao()}, {session.user.name?.split(" ")[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Aqui está a visão geral modular do seu sistema hoje.
-          </p>
+      <div className="flex flex-col gap-2 mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold tracking-tight theme-title">Dashboard</h1>
+            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 animate-pulse">
+              Modo Modular Ativo
+            </Badge>
+          </div>
+          <div className="text-xs text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
+            Sincronizado em real-time
+          </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 p-1 bg-muted/50 rounded-lg border border-border/40">
-          <LayoutGrid className="h-4 w-4 ml-2 text-muted-foreground" />
-          <span className="text-[10px] font-bold uppercase mr-2 text-muted-foreground px-2">Dashboard Modular</span>
-        </div>
+        <p className="text-muted-foreground text-sm">Resumo operacional e métricas de desempenho do sistema.</p>
       </div>
-
       {/* Grid de Widgets Modulares */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {activeModules.includes("financeiro") && <FinanceWidget stats={stats} />}
-        {activeModules.includes("whatsapp") && <WhatsAppWidget />}
-        <BackupWidget />
-        <TasksWidget />
+        {activeModules.includes("whatsapp") && <WhatsAppWidget data={{ totalMessages: 148, activeInstances: 2 }} />}
+        <BackupWidget data={{ lastBackup: "3h atrás" }} />
+        <TasksWidget data={{ pendingTasks: 4 }} />
       </div>
 
       {/* KPI Adicionais (Clientes e Serviços) */}

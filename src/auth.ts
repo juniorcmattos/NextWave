@@ -1,98 +1,65 @@
-import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      role: string;
-    } & DefaultSession["user"]
-  }
-
-  interface User {
-    role: string;
-  }
-}
+import { authConfig } from "./auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   providers: [
     Credentials({
+      id: "credentials",
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
+        twoFactorCode: { label: "Código 2FA", type: "text" },
       },
-      authorize: async (credentials, req) => {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: String(credentials.email) },
+          });
 
-        if (!user) return null;
-
-        // 1. Validação de IP (se configurado)
-        if (user.allowedIps && user.allowedIps !== "*") {
-          const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
-          const allowedIps = user.allowedIps.split(",").map(ip => ip.trim());
-          if (!allowedIps.includes(clientIp)) {
-            throw new Error("Acesso não permitido deste endereço IP.");
+          if (!user || !user.password) {
+            console.log("User not found or no password:", credentials.email);
+            return null;
           }
-        }
 
-        // 2. Validação de Horário (se configurado)
-        if (user.workDayStart && user.workDayEnd) {
-          const now = new Date();
-          const currentTime = now.getHours() * 60 + now.getMinutes();
+          const isPasswordValid = await bcrypt.compare(
+            String(credentials.password),
+            user.password
+          );
 
-          const [startH, startM] = user.workDayStart.split(":").map(Number);
-          const [endH, endM] = user.workDayEnd.split(":").map(Number);
-
-          const startTime = startH * 60 + startM;
-          const endTime = endH * 60 + endM;
-
-          if (currentTime < startTime || currentTime > endTime) {
-            throw new Error("Acesso fora do horário de trabalho permitido.");
+          if (!isPasswordValid) {
+            console.log("Invalid password for user:", credentials.email);
+            return null;
           }
+
+          if (user.twoFactorEnabled && !credentials.twoFactorCode) {
+            console.log("2FA required for user:", credentials.email);
+            throw new Error("2FA_REQUIRED");
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (error: any) {
+          if (error.title === "2FA_REQUIRED" || error.message === "2FA_REQUIRED") {
+            throw error;
+          }
+          console.error("Authorize error detail:", error);
+          return null;
         }
-
-        const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-
-        if (!passwordMatch) return null;
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          image: user.avatar,
-        };
       },
     }),
   ],
-  pages: {
-    signIn: "/login",
-  },
-  session: { strategy: "jwt" },
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: string }).role;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string;
-      }
-      return session;
-    },
-  },
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
+  debug: true, // Habilitar debug para ver erro de configuration no terminal
 });

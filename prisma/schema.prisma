@@ -18,6 +18,8 @@ model User {
   allowedIps   String?  // IPs permitidos (separados por vírgula ou "*" para todos)
   workDayStart String?  // Formato HH:mm (ex: 08:00)
   workDayEnd   String?  // Formato HH:mm (ex: 18:00)
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -26,6 +28,7 @@ model User {
   services     Service[]
   events       Event[]
   projects     Project[]
+  subscriptions Subscription[]
 }
 
 model Client {
@@ -48,6 +51,7 @@ model Client {
   user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
   services     Service[]
+  subscriptions Subscription[]
 }
 
 model Transaction {
@@ -267,4 +271,30 @@ model ScheduledTask {
   config      String?  // JSON string com configurações extras
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+model Subscription {
+  id          String   @id @default(cuid())
+  name        String   // Ex: 'Plano Mensal Gold'
+  amount      Float
+  interval    String   // 'monthly', 'yearly', 'weekly'
+  status      String   @default("active") // active, paused, cancelled
+  nextBilling DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+}
+
+model NfeConfig {
+  id                String   @id @default("default")
+  cnpj              String
+  inscricaoMunicipal String
+  razaoSocial       String
+  senhaCertificado  String?  // Criptografado
+  certificadoBase64 String?  // Arquivo PFX em Base64 criptografado
+  ambiente          String   @default("homologacao") // homologacao, producao
+  updatedAt         DateTime @updatedAt
 }

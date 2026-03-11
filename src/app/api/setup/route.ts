@@ -69,13 +69,28 @@ export async function POST(req: Request) {
 
         // 3. Configurar Módulos
         if (modules && Array.isArray(modules)) {
-            await (prisma as any).systemModule.updateMany({
-                data: { enabled: false }
-            });
-            await (prisma as any).systemModule.updateMany({
-                where: { key: { in: modules } },
-                data: { enabled: true }
-            });
+            const allPossibleModules = [
+                { key: "clientes", label: "Clientes" },
+                { key: "financeiro", label: "Financeiro" },
+                { key: "projetos", label: "Projetos" },
+                { key: "servicos", label: "Serviços" },
+                { key: "agenda", label: "Agenda" },
+                { key: "whatsapp", label: "WhatsApp" },
+                { key: "usuarios", label: "Usuários" }
+            ];
+
+            // Garantir que todos existam e setar enabled baseado na seleção
+            for (const m of allPossibleModules) {
+                await (prisma as any).systemModule.upsert({
+                    where: { key: m.key },
+                    update: { enabled: modules.includes(m.key) },
+                    create: {
+                        key: m.key,
+                        name: m.label,
+                        enabled: modules.includes(m.key)
+                    }
+                });
+            }
         }
 
         return NextResponse.json({

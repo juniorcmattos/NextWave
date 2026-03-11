@@ -201,6 +201,34 @@ export default function ConfiguracoesPage() {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link href="/configuracoes/seguranca">
+            <Card className="hover:border-primary/50 transition-colors group">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="p-2 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Segurança & 2FA</CardTitle>
+                  <CardDescription>Proteja sua conta com dois fatores.</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/configuracoes/nfe">
+            <Card className="hover:border-primary/50 transition-colors group">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <Puzzle className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Notas Fiscais (NFE)</CardTitle>
+                  <CardDescription>Configurar rotinas de emissão em lote.</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

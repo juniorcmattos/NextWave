@@ -9,23 +9,39 @@ export async function GET() {
     }
 
     try {
-        const modules = await (prisma as any).systemModule.findMany({
+        let modules = await (prisma as any).systemModule.findMany({
             orderBy: { name: 'asc' }
         });
+
+        // Se o banco estiver vazio (ex: após reset), inicializa com padrões
+        if (modules.length === 0) {
+            const defaultModules = [
+                { key: 'clientes', name: 'Clientes', enabled: true },
+                { key: 'financeiro', name: 'Financeiro', enabled: true },
+                { key: 'projetos', name: 'Projetos', enabled: true },
+                { key: 'servicos', name: 'Serviços', enabled: true },
+                { key: 'agenda', name: 'Agenda', enabled: true },
+                { key: 'usuarios', name: 'Usuários', enabled: true },
+                { key: 'whatsapp', name: 'WhatsApp', enabled: true },
+            ];
+
+            for (const mod of defaultModules) {
+                await (prisma as any).systemModule.upsert({
+                    where: { key: mod.key },
+                    update: { enabled: mod.enabled },
+                    create: mod
+                });
+            }
+
+            modules = await (prisma as any).systemModule.findMany({
+                orderBy: { name: 'asc' }
+            });
+        }
+
         return NextResponse.json(modules);
     } catch (error) {
         console.error("[MODULES_GET_ERROR]", error);
-        // Fallback: Retornar lista padrão se o banco falhar para não quebrar a UI
-        const defaultModules = [
-            { key: 'clientes', name: 'Clientes', enabled: true },
-            { key: 'financeiro', name: 'Financeiro', enabled: true },
-            { key: 'projetos', name: 'Projetos', enabled: true },
-            { key: 'servicos', name: 'Serviços', enabled: true },
-            { key: 'agenda', name: 'Agenda', enabled: true },
-            { key: 'usuarios', name: 'Usuários', enabled: true },
-            { key: 'whatsapp', name: 'WhatsApp', enabled: true },
-        ];
-        return NextResponse.json(defaultModules);
+        return NextResponse.json({ error: "Erro ao buscar módulos" }, { status: 500 });
     }
 }
 

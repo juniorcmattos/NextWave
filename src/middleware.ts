@@ -1,31 +1,32 @@
-import { auth } from "@/auth";
+import { auth } from "./auth";
 import { NextResponse } from "next/server";
 
-export default auth(async (req) => {
+export default auth((req) => {
+  const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const { pathname } = req.nextUrl;
-  
-  const isAuthPage = pathname.startsWith("/login");
-  const isSetupPage = pathname.startsWith("/setup");
-  const isApiAuth = pathname.startsWith("/api/auth");
-  const isApiSetup = pathname.startsWith("/api/setup");
 
-  if (isApiAuth || isApiSetup) return NextResponse.next();
+  const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+  const isAuthPage = nextUrl.pathname === "/login";
+  const isSetupRoute = nextUrl.pathname.startsWith("/setup") || nextUrl.pathname.startsWith("/api/setup");
 
-  // Permitir acesso à página de setup sem estar logado
-  if (isSetupPage) return NextResponse.next();
-
-  if (!isLoggedIn && !isAuthPage) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  // 1. Permitir sempre rotas de API de autenticação e Setup
+  if (isApiAuthRoute || isSetupRoute) {
+    return NextResponse.next();
   }
 
-  if (isLoggedIn && (isAuthPage || isSetupPage)) {
-    return NextResponse.redirect(new URL("/", req.url));
+  // 2. Redirecionar para login se tentar acessar dashboard sem estar logado
+  if (!isLoggedIn && !isAuthPage) {
+    return NextResponse.redirect(new URL("/login", nextUrl));
+  }
+
+  // 3. Se estiver logado e for para login, manda pro dashboard
+  if (isLoggedIn && isAuthPage) {
+    return NextResponse.redirect(new URL("/", nextUrl));
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+  matcher: ["/((?!api/auth|_next/code|_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
 };

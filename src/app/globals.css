@@ -31,7 +31,7 @@
     --radius: 0.75rem;
   }
 
-  /* Dark Theme Base (Horizon.Gen look) */
+  /* Dark Theme Base */
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -59,59 +59,102 @@
     --sidebar: 240 10% 4%;
   }
 
-  /* Theme Variants */
-  [data-theme='orange'] {
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 24 95% 53%;
-  }
+  /* ===== CORES DE DESTAQUE ===== */
+  /* Declaradas após .dark = mesma especificidade, maior prioridade por ordem */
 
-  [data-theme='blue'] {
+  [data-color='blue'] {
     --primary: 182 100% 50%;
     --primary-foreground: 182 100% 10%;
     --ring: 182 100% 50%;
   }
 
-  [data-theme='chartmogul'] {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --sidebar: 210 40% 98%;
-  }
-
-  .dark[data-theme='orange'] {
+  [data-color='orange'] {
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
     --ring: 24 95% 53%;
   }
 
-  .dark[data-theme='blue'] {
+  [data-color='green'] {
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 160 84% 39%;
+  }
+
+  [data-color='purple'] {
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 262 83% 58%;
+  }
+
+  [data-color='rose'] {
+    --primary: 347 77% 50%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 347 77% 50%;
+  }
+
+  /* Dark + cor (especificidade 0,2,0 — garante override sobre .dark isolado) */
+  .dark[data-color='blue'] {
     --primary: 182 100% 50%;
     --primary-foreground: 182 100% 10%;
     --ring: 182 100% 50%;
   }
 
-  /* Estilos Adicionais para Horizon.Gen Look */
-  .dark .card-glass {
-    @apply bg-[#111214]/60 backdrop-blur-md border border-white/5 shadow-2xl;
+  .dark[data-color='orange'] {
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 24 95% 53%;
+  }
+
+  .dark[data-color='green'] {
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 160 84% 39%;
+  }
+
+  .dark[data-color='purple'] {
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 262 83% 58%;
+  }
+
+  .dark[data-color='rose'] {
+    --primary: 347 77% 50%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 347 77% 50%;
   }
 
   .primary-gradient {
     @apply bg-gradient-to-br from-primary to-primary/80 transition-all duration-300;
+  }
+
+  /* ===== LAYOUT PROFESSIONAL (ChartMogul style) ===== */
+  /* Apenas estrutura/forma — dark/light mode controla as cores de fundo */
+  [data-layout='professional'] {
+    --radius: 0px;
+  }
+
+  [data-layout='professional'] .kpi-card {
+    @apply border-none bg-transparent rounded-none border-b border-border pt-4 pb-4 px-0;
+  }
+
+  [data-layout='professional'] table {
+    @apply border-collapse w-full;
+  }
+
+  [data-layout='professional'] th {
+    @apply text-muted-foreground font-medium text-xs uppercase tracking-wider border-b border-border py-3 px-4 text-left bg-transparent;
+  }
+
+  [data-layout='professional'] td {
+    @apply py-3 px-4 border-b border-border text-sm;
+  }
+
+  [data-layout='professional'] .theme-title {
+    @apply font-black tracking-tight;
+  }
+
+  [data-layout='professional'] header {
+    @apply shadow-none;
   }
 }
 
@@ -124,7 +167,6 @@
     @apply bg-background text-foreground font-sans antialiased selection:text-primary;
   }
 
-  /* Scrollbar personalizada */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -160,7 +202,6 @@
     }
   }
 
-  /* Efeitos de micro-interação */
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-0.5;
   }
