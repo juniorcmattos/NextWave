@@ -64,5 +64,33 @@ npm start
 - **Erro de motor do Prisma (Engine not found)**: Se você encontrar erros dizendo que o binário do Prisma não foi encontrado, execute `npx prisma generate` novamente. Isso forçará o download do motor correto para o seu hardware.
 - **Docker**: Se for criar uma imagem Docker, use `node:20-alpine` ou `node:20-slim`, que possuem excelente suporte para ARM64.
 
+## 5. Instalação via Docker (Recomendado para Produção)
+
+O Docker é a forma mais segura e estável de rodar o NextWave em servidores ARM64, pois ele isola todas as dependências do sistema operacional.
+
+### Passo 1: Construir a Imagem
+```bash
+docker compose build
+```
+
+### Passo 2: Iniciar o Container
+```bash
+docker compose up -d
+```
+
+O sistema estará disponível em `http://localhost:3000`. O banco de dados SQLite será persistido no volume `crm-data`.
+
 ---
-*Documentação gerada para a versão 1.1.0*
+## Host vs Docker: Qual usar?
+
+| Característica | Rodar no Host (npm run dev) | Rodar no Docker (Compose) |
+| :--- | :--- | :--- |
+| **Uso Ideal** | Desenvolvimento e testes rápidos | Produção e Servidores (24/7) |
+| **Performance** | Nativa (mais rápida para código) | Pequeno overhead de rede/disco |
+| **Isolação** | Nenhuma (usa o Node do seu PC) | Total (não polui seu sistema) |
+| **Atualização** | `git pull` + `npm install` | `docker compose pull/build` |
+
+**Recomendação**: Mantenha as duas formas. Use o **Host** para fazer alterações e testar rápido, e o **Docker** para colocar o sistema "no ar" de forma profissional.
+
+---
+*Documentação atualizada em 11/03/2026*
