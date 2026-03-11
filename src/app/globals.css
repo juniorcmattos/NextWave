@@ -128,33 +128,31 @@
   }
 
   /* ===== LAYOUT PROFESSIONAL (ChartMogul style) ===== */
-  /* Apenas estrutura/forma — dark/light mode controla as cores de fundo */
   [data-layout='professional'] {
     --radius: 0px;
   }
 
+  /* Em modo professional, as bordas são mais sutis e quadradas */
+  [data-layout='professional'] .rounded-xl,
+  [data-layout='professional'] .rounded-lg,
+  [data-layout='professional'] .rounded-md {
+    border-radius: 0px !important;
+  }
+
   [data-layout='professional'] .kpi-card {
-    @apply border-none bg-transparent rounded-none border-b border-border pt-4 pb-4 px-0;
+    @apply border-none bg-transparent rounded-none border-b border-border pt-4 pb-4 px-0 shadow-none;
   }
 
-  [data-layout='professional'] table {
-    @apply border-collapse w-full;
-  }
-
-  [data-layout='professional'] th {
-    @apply text-muted-foreground font-medium text-xs uppercase tracking-wider border-b border-border py-3 px-4 text-left bg-transparent;
-  }
-
-  [data-layout='professional'] td {
-    @apply py-3 px-4 border-b border-border text-sm;
-  }
-
-  [data-layout='professional'] .theme-title {
-    @apply font-black tracking-tight;
+  [data-layout='professional'] aside {
+    @apply border-r border-border shadow-none;
   }
 
   [data-layout='professional'] header {
-    @apply shadow-none;
+    @apply border-b border-border shadow-none bg-background;
+  }
+
+  [data-layout='professional'] .theme-title {
+    @apply font-black tracking-tight uppercase text-xs text-muted-foreground mb-4;
   }
 }
 

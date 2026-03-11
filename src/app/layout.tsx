@@ -7,6 +7,8 @@ import { ColorProvider } from "@/components/providers/ColorProvider";
 import type { AccentColor, LayoutTheme } from "@/components/providers/ColorProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { Toaster } from "sonner";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,17 +20,38 @@ export const metadata: Metadata = {
 const VALID_COLORS: AccentColor[] = ["blue", "orange", "green", "purple", "rose"];
 const VALID_LAYOUTS: LayoutTheme[] = ["default", "professional"];
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Lê cookies do servidor para renderizar sem flash
+  // Tenta carregar do banco se logado, senão usa cookies (flash prevention)
+  const session = await auth();
   const cookieStore = cookies();
+
+  let dbColor = null;
+  let dbLayout = null;
+
+  if (session?.user?.id) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { accentColor: true, layoutTheme: true }
+      } as any);
+      if (user) {
+        dbColor = user.accentColor as AccentColor;
+        dbLayout = user.layoutTheme as LayoutTheme;
+      }
+    } catch (e) {
+      console.error("Erro ao carregar tema do banco no layout", e);
+    }
+  }
+
   const rawColor = cookieStore.get("nextwave-accent-color")?.value as AccentColor;
   const rawLayout = cookieStore.get("nextwave-layout-theme")?.value as LayoutTheme;
-  const initialColor: AccentColor = VALID_COLORS.includes(rawColor) ? rawColor : "blue";
-  const initialLayout: LayoutTheme = VALID_LAYOUTS.includes(rawLayout) ? rawLayout : "default";
+
+  const initialColor: AccentColor = VALID_COLORS.includes(dbColor || rawColor) ? (dbColor || rawColor as any) : "blue";
+  const initialLayout: LayoutTheme = VALID_LAYOUTS.includes(dbLayout || rawLayout) ? (dbLayout || rawLayout as any) : "default";
 
   return (
     <html

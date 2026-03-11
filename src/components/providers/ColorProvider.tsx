@@ -34,7 +34,7 @@ export function ColorProvider({
     const [accentColor, setAccentColorState] = useState<AccentColor>(initialColor);
     const [layoutTheme, setLayoutThemeState] = useState<LayoutTheme>(initialLayout);
 
-    // Sincroniza atributos HTML + persiste (cookie + localStorage)
+    // Persistência local (rápida)
     useEffect(() => {
         const root = window.document.documentElement;
         root.setAttribute("data-color", accentColor);
@@ -45,7 +45,29 @@ export function ColorProvider({
         setCookie("nextwave-layout-theme", layoutTheme);
     }, [accentColor, layoutTheme]);
 
-    // Garante que localStorage e cookies estejam em sincronia
+    // Persistência no Banco (Debounced ou Direta)
+    useEffect(() => {
+        const syncWithDb = async () => {
+            try {
+                await fetch("/api/user/preferences", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ accentColor, layoutTheme }),
+                });
+            } catch (err) {
+                console.error("Erro ao sincronizar tema com banco", err);
+            }
+        };
+
+        // Não roda o sync se for o valor inicial exato (evita calls desnecessárias no load)
+        const isDefault = accentColor === initialColor && layoutTheme === initialLayout;
+        if (!isDefault) {
+            const timer = setTimeout(syncWithDb, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [accentColor, layoutTheme, initialColor, initialLayout]);
+
+    // Sincroniza estado inicial com localStorage caso seja diferente do initial props (server side)
     useEffect(() => {
         const savedColor = localStorage.getItem("nextwave-accent-color") as AccentColor;
         const savedLayout = localStorage.getItem("nextwave-layout-theme") as LayoutTheme;
@@ -55,7 +77,7 @@ export function ColorProvider({
         if (savedLayout && VALID_LAYOUTS.includes(savedLayout) && savedLayout !== layoutTheme) {
             setLayoutThemeState(savedLayout);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

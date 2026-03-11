@@ -24,7 +24,15 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MoreVertical, Calendar, Clock } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, MoreVertical, Calendar, Clock, Edit, Trash, ArrowRight, Settings } from "lucide-react";
 
 type Task = {
     id: string;
@@ -58,15 +66,38 @@ const INITIAL_DATA: Column[] = [
     },
 ];
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({ task, onEdit, onDelete }: { task: Task; onEdit?: () => void; onDelete?: () => void }) {
     return (
         <Card className="cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20 transition-all border-none shadow-sm shadow-black/5">
             <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                     <p className="font-bold text-sm leading-tight">{task.title}</p>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2" onClick={(e) => e.stopPropagation()}>
-                        <MoreVertical className="h-3 w-3" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 -mr-2 bg-transparent hover:bg-muted"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <MoreVertical className="h-3 w-3" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuLabel>Opções da Tarefa</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onEdit} className="gap-2">
+                                <Edit className="h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2">
+                                <ArrowRight className="h-4 w-4" /> Mover
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onDelete} className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                <Trash className="h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -95,7 +126,7 @@ function TaskCard({ task }: { task: Task }) {
     );
 }
 
-function SortableCard({ task }: { task: Task }) {
+function SortableCard({ task, onEdit, onDelete }: { task: Task; onEdit?: () => void; onDelete?: () => void }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
 
     return (
@@ -109,7 +140,7 @@ function SortableCard({ task }: { task: Task }) {
             {...attributes}
             {...listeners}
         >
-            <TaskCard task={task} />
+            <TaskCard task={task} onEdit={onEdit} onDelete={onDelete} />
         </div>
     );
 }
@@ -119,9 +150,8 @@ function DroppableColumn({ column, children }: { column: Column; children: React
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col gap-3 min-h-[500px] p-2 rounded-xl border-2 border-dashed transition-colors ${
-                isOver ? "border-primary/40 bg-primary/5" : "border-transparent bg-muted/20 hover:border-border"
-            }`}
+            className={`flex flex-col gap-3 min-h-[500px] p-2 rounded-xl border-2 border-dashed transition-colors ${isOver ? "border-primary/40 bg-primary/5" : "border-transparent bg-muted/20 hover:border-border"
+                }`}
         >
             {children}
         </div>
@@ -155,14 +185,12 @@ export default function KanbanBoard() {
         if (activeId === overId) return;
 
         const sourceCol = findColumnByTaskId(activeId);
-        // over pode ser uma tarefa ou uma coluna
         const destCol =
             findColumnByTaskId(overId) ?? columns.find((c) => c.id === overId);
 
         if (!sourceCol || !destCol) return;
 
         if (sourceCol.id === destCol.id) {
-            // Reordenar dentro da mesma coluna
             const oldIndex = sourceCol.tasks.findIndex((t) => t.id === activeId);
             const newIndex = sourceCol.tasks.findIndex((t) => t.id === overId);
             if (oldIndex === -1 || newIndex === -1) return;
@@ -174,7 +202,6 @@ export default function KanbanBoard() {
                 )
             );
         } else {
-            // Mover entre colunas
             const task = sourceCol.tasks.find((t) => t.id === activeId)!;
             const overIndex = destCol.tasks.findIndex((t) => t.id === overId);
             const insertAt = overIndex >= 0 ? overIndex : destCol.tasks.length;
@@ -193,6 +220,17 @@ export default function KanbanBoard() {
             );
         }
     }
+
+    const handleDeleteTask = (taskId: string) => {
+        setColumns(cols => cols.map(col => ({
+            ...col,
+            tasks: col.tasks.filter(t => t.id !== taskId)
+        })));
+    };
+
+    const handleDeleteColumn = (colId: string) => {
+        setColumns(cols => cols.filter(c => c.id !== colId));
+    };
 
     return (
         <DndContext
@@ -224,9 +262,35 @@ export default function KanbanBoard() {
                                         {column.tasks.length}
                                     </Badge>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Plus className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-48">
+                                            <DropdownMenuLabel>Opções da Coluna</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem className="gap-2">
+                                                <Edit className="h-4 w-4" /> Renomear Coluna
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="gap-2">
+                                                <Settings className="h-4 w-4" /> Configurações
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                onClick={() => handleDeleteColumn(column.id)}
+                                                className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                            >
+                                                <Trash className="h-4 w-4" /> Excluir Coluna
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             </div>
 
                             <SortableContext
@@ -235,7 +299,11 @@ export default function KanbanBoard() {
                             >
                                 <DroppableColumn column={column}>
                                     {column.tasks.map((task) => (
-                                        <SortableCard key={task.id} task={task} />
+                                        <SortableCard
+                                            key={task.id}
+                                            task={task}
+                                            onDelete={() => handleDeleteTask(task.id)}
+                                        />
                                     ))}
                                     <Button
                                         variant="ghost"
@@ -247,6 +315,16 @@ export default function KanbanBoard() {
                             </SortableContext>
                         </div>
                     ))}
+                    <button
+                        onClick={() => {
+                            const newId = `col-${Date.now()}`;
+                            setColumns([...columns, { id: newId, title: "Nova Coluna", tasks: [] }]);
+                        }}
+                        className="flex-shrink-0 w-80 h-[100px] border-2 border-dashed border-border rounded-xl flex items-center justify-center text-muted-foreground hover:border-primary/50 hover:text-primary transition-all gap-2 group"
+                    >
+                        <Plus className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                        <span className="font-bold text-sm tracking-tight uppercase">Adicionar Coluna</span>
+                    </button>
                 </div>
             </div>
 

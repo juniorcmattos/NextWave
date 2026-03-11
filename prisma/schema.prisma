@@ -20,6 +20,8 @@ model User {
   workDayEnd   String?  // Formato HH:mm (ex: 18:00)
   twoFactorSecret   String?
   twoFactorEnabled  Boolean  @default(false)
+  accentColor  String   @default("blue")
+  layoutTheme  String   @default("default")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
