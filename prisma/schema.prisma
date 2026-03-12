@@ -69,6 +69,11 @@ model Transaction {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  // InfinitePay Fields
+  infinitePaySlug String?
+  infinitePayUrl  String?
+  paymentMethod   String?
+
   userId   String
   user     User    @relation(fields: [userId], references: [id])
   clientId String?
