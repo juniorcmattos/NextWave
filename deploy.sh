@@ -1,9 +1,15 @@
 #!/bin/bash
 
 # Script de Deploy Automatizado do NextWave CRM para ARM64
-# Versão 1.1.0
+# Versão 1.1.4
 
 echo "🚀 Iniciando Deploy do NextWave CRM..."
+
+# Tentar detectar o IP local do servidor
+SERVER_IP=$(hostname -I | awk '{print $1}')
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP="localhost"
+fi
 
 # 1. Verificar se o Docker está instalado
 if ! [ -x "$(command -v docker)" ]; then
@@ -16,12 +22,13 @@ if [ ! -f .env ]; then
     echo "📄 Arquivo .env não encontrado. Criando um padrão..."
     if [ -f .env.example ]; then
         cp .env.example .env
-        echo "✅ .env criado a partir do .env.example. POR FAVOR, EDITE O .env ANTES DE PROSSEGUIR SE NECESSÁRIO."
+        sed -i "s|NEXTAUTH_URL=.*|NEXTAUTH_URL=http://$SERVER_IP:3000|g" .env
+        echo "✅ .env criado. ATENÇÃO: Verifique o campo NEXTAUTH_URL no arquivo .env."
     else
         echo "DATABASE_URL=\"file:/app/data/prod.db\"" > .env
         echo "NEXTAUTH_SECRET=\"$(openssl rand -base64 32)\"" >> .env
-        echo "NEXTAUTH_URL=\"http://localhost:3000\"" >> .env
-        echo "✅ .env gerado automaticamente com chave segura."
+        echo "NEXTAUTH_URL=\"http://$SERVER_IP:3000\"" >> .env
+        echo "✅ .env gerado automaticamente com IP detectado: $SERVER_IP"
     fi
 fi
 

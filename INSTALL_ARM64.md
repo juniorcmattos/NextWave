@@ -71,6 +71,9 @@ chmod +x deploy.sh
 ./deploy.sh
 ```
 
+> [!IMPORTANT]
+> **Acesso Remoto**: Se você estiver acessando o sistema por um IP externo (não localhost), você **precisa** editar seu arquivo `.env` e alterar a variável `NEXTAUTH_URL` para o IP do seu servidor (ex: `NEXTAUTH_URL=http://192.168.1.50:3000`). Se não fizer isso, o sistema redirecionará para `localhost` após o login.
+
 ---
 ## 5. Instalação via Docker (Recomendado para Produção)
 
