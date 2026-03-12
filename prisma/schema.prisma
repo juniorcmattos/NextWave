@@ -31,6 +31,7 @@ model User {
   events       Event[]
   projects     Project[]
   subscriptions Subscription[]
+  callLogs     CallLog[]
 }
 
 model Client {
