@@ -142,7 +142,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       return (
         <Tooltip key={item.href}>
           <TooltipTrigger asChild>
-            <Link href={item.href} className={getLinkClass(isActive || subActive, true)}>
+            <Link href={item.href} className={getLinkClass(isActive || subActive, true)} onClick={onClose}>
               <Icon className="h-4 w-4" />
             </Link>
           </TooltipTrigger>
@@ -159,6 +159,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <Link
               href={item.href}
               className={cn(getLinkClass(isActive && !subActive, false), "flex-1 min-w-0")}
+              onClick={onClose}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="truncate flex-1">{item.label}</span>
@@ -187,6 +188,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                         ? "text-primary font-semibold bg-primary/5"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
+                    onClick={onClose}
                   >
                     <PieChart className="h-3 w-3 shrink-0 opacity-70" />
                     {sub.label}
@@ -200,7 +202,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     }
 
     return (
-      <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)}>
+      <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)} onClick={onClose}>
         <Icon className="h-4 w-4 shrink-0" />
         <span className="truncate">{item.label}</span>
       </Link>
@@ -252,7 +254,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 return (
                   <Tooltip key={item.href}>
                     <TooltipTrigger asChild>
-                      <Link href={item.href} className={getLinkClass(isActive, true)}>
+                      <Link href={item.href} className={getLinkClass(isActive, true)} onClick={onClose}>
                         <Icon className="h-4 w-4" />
                       </Link>
                     </TooltipTrigger>
@@ -261,7 +263,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 );
               }
               return (
-                <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)}>
+                <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)} onClick={onClose}>
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="truncate">{item.label}</span>
                 </Link>
