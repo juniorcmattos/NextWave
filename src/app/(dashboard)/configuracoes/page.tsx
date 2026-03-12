@@ -229,6 +229,22 @@ export default function ConfiguracoesPage() {
               </CardHeader>
             </Card>
           </Link>
+
+          {session?.user?.role === "master" && (
+            <Link href="/configuracoes/whitelabel">
+              <Card className="hover:border-primary/50 border-primary/20 bg-primary/5 transition-colors group">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="p-2 rounded-lg bg-primary text-white transition-colors">
+                    <Palette className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">White-Label & Licença</CardTitle>
+                    <CardDescription>Gerencie a marca e o status desta instância.</CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          )}
         </div>
       </div>
     </div>

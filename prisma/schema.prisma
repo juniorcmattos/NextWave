@@ -300,3 +300,23 @@ model NfeConfig {
   ambiente          String   @default("homologacao") // homologacao, producao
   updatedAt         DateTime @updatedAt
 }
+model SystemLicense {
+  id          String   @id @default("default")
+  key         String?  @unique
+  status      String   @default("active") // active, suspended, expired, trial
+  validUntil  DateTime?
+  lastCheck   DateTime @default(now())
+  customerName String?
+  updatedAt   DateTime @updatedAt
+}
+
+model SystemBranding {
+  id          String   @id @default("default")
+  name        String   @default("NextWave CRM")
+  logoUrl     String?
+  faviconUrl  String?
+  primaryColor String  @default("#3b82f6")
+  supportEmail String?
+  supportPhone String?
+  updatedAt   DateTime @updatedAt
+}

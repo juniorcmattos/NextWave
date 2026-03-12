@@ -56,8 +56,33 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  mariadb:
+    image: mariadb:10.11
+    container_name: nextwave-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=nextwave_root_pwd
+      - MARIADB_DATABASE=nextwave_crm
+      - MARIADB_USER=nextwave_user
+      - MARIADB_PASSWORD=nextwave_pwd
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   crm-data:
     driver: local
   evolution-data:
+    driver: local
+  mysql-data:
     driver: local
