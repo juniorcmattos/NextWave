@@ -244,7 +244,7 @@ export default function FinanceiroPage() {
                 ))}
               </TabsList>
             </div>
-            <TabsContent value={activeTab} className="mt-0">
+            <TabsContent value="todos" className="mt-0">
               {loading ? (
                 <div className="flex justify-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -283,10 +283,10 @@ export default function FinanceiroPage() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                              title="Links InfinitePay"
+                              title="Link de Pagamento"
                               onClick={async () => {
                                 try {
-                                  const res = await fetch(`/api/financeiro/${tx.id}/infinitepay`, { method: "POST" });
+                                  const res = await fetch(`/api/financeiro/${tx.id}/pagar`, { method: "POST" });
                                   const data = await res.json();
                                   if (data.url) window.open(data.url, "_blank");
                                   else throw new Error();
@@ -305,7 +305,7 @@ export default function FinanceiroPage() {
                               onClick={async () => {
                                 setQrCodeLoading(true);
                                 try {
-                                  const res = await fetch(`/api/financeiro/${tx.id}/infinitepay`, { method: "POST" });
+                                  const res = await fetch(`/api/financeiro/${tx.id}/pagar`, { method: "POST" });
                                   const data = await res.json();
                                   if (data.url) {
                                     setQrCodeUrl(data.url);
@@ -354,42 +354,43 @@ export default function FinanceiroPage() {
                   ))}
                 </div>
               )}
-              <TabsContent value="assinaturas" className="mt-0">
-                {loading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                  </div>
-                ) : subscriptions.length === 0 ? (
-                  <div className="py-12 text-center space-y-4">
-                    <p className="text-muted-foreground">Nenhuma assinatura ativa encontrada.</p>
-                    <Button onClick={() => setIsSubDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeira Assinatura
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {subscriptions.map((sub) => (
-                      <div key={sub.id} className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-900/30">
-                          <Clock className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate">{sub.description}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {sub.client?.name} • R$ {sub.amount.toFixed(2)} • {sub.interval === "monthly" ? "Mensal" : "Anual"}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Próximo Faturamento</p>
-                          <p className="text-sm font-semibold">{formatDate(sub.nextBillingDate)}</p>
-                        </div>
-                        <Badge variant={sub.status === "active" ? "success" : "secondary"}>{sub.status}</Badge>
+            </TabsContent>
+            <TabsContent value="assinaturas" className="mt-0">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              ) : subscriptions.length === 0 ? (
+                <div className="py-12 text-center space-y-4">
+                  <p className="text-muted-foreground">Nenhuma assinatura ativa encontrada.</p>
+                  <Button onClick={() => setIsSubDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeira Assinatura
+                  </Button>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {subscriptions.map((sub) => (
+                    <div key={sub.id} className="flex items-center gap-4 px-6 py-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-900/30">
+                        <Clock className="h-5 w-5" />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">{sub.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {sub.client?.name} • R$ {sub.amount.toFixed(2)} • {sub.interval === "monthly" ? "Mensal" : "Anual"}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Próximo Faturamento</p>
+                        <p className="text-sm font-semibold">{formatDate(sub.nextBillingDate)}</p>
+                      </div>
+                      <Badge variant={sub.status === "active" ? "success" : "secondary"}>{sub.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -509,7 +510,7 @@ export default function FinanceiroPage() {
               </div>
               <div className="space-y-2">
                 <Label>Intervalo</Label>
-                <Select defaultValue="monthly" id="sub-interval">
+                <Select defaultValue="monthly" onValueChange={(val) => { /* handle value change if needed */ }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="monthly">Mensal</SelectItem>

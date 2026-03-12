@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { generateInfinitePayLink } from "@/lib/infinitepay";
+import { generatePaymentLink } from "@/lib/infinitepay";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 export async function processRecurringBilling() {
@@ -34,12 +34,12 @@ export async function processRecurringBilling() {
                     }
                 });
 
-                // 2. Gerar Link InfinitePay
+                // 2. Gerar Link de Pagamento (Genérico)
                 let paymentLink = "";
                 try {
-                    paymentLink = await generateInfinitePayLink(transaction.id);
+                    paymentLink = await generatePaymentLink(transaction.id);
                 } catch (err) {
-                    console.error(`[BILLING_SERVICE] Erro ao gerar link InfinitePay p/ Sub ${sub.id}:`, err);
+                    console.error(`[BILLING_SERVICE] Erro ao gerar link de pagamento p/ Sub ${sub.id}:`, err);
                 }
 
                 // 3. Enviar via WhatsApp (se cliente tiver telefone)
