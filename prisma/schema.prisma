@@ -320,3 +320,32 @@ model SystemBranding {
   supportPhone String?
   updatedAt   DateTime @updatedAt
 }
+model CallLog {
+  id            String   @id @default(cuid())
+  direction     String   // incoming, outgoing
+  from          String
+  to            String
+  duration      Int      @default(0) // seconds
+  status        String   @default("completed") // completed, missed, busy, failed
+  recordingUrl  String?
+  notes         String?
+  timestamp     DateTime @default(now())
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id])
+}
+
+model PbxConfig {
+  id            String   @id @default("default")
+  provider      String   @default("simulator") // twilio, sip, simulator
+  apiKey        String?
+  apiSecret     String?
+  accountSid    String?
+  sipDomain     String?
+  sipUser       String?
+  sipPassword   String?
+  isActive      Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+}

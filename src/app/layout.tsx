@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ColorProvider } from "@/components/providers/ColorProvider";
 import { Toaster } from "sonner";
+import { Softphone } from "@/components/pbx/softphone";
 import "./globals.css";
 
 // Removendo Google Fonts para evitar timeouts no build Docker ARM64
@@ -125,6 +126,7 @@ export default async function RootLayout({
               />
             </ColorProvider>
           </ThemeProvider>
+          <Softphone />
         </SessionProvider>
       </body>
     </html>
