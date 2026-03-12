@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone } from "lucide-react";
+import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone, DollarSign } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
