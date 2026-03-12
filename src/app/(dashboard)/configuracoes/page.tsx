@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone, DollarSign } from "lucide-react";
+import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone, DollarSign, CreditCard } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -244,17 +244,17 @@ export default function ConfiguracoesPage() {
             </Card>
           </Link>
 
-          <Link href="/configuracoes/infinitepay">
-            <Card className="hover:border-primary/50 transition-colors group">
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                  <DollarSign className="h-6 w-6" />
+          <Link href="/configuracoes/pagamentos">
+            <Card className="hover:bg-muted/50 transition-all border-purple-500/10 hover:border-purple-500/30 cursor-pointer shadow-sm">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 shrink-0">
+                  <CreditCard className="h-5 w-5" />
                 </div>
-                <div>
-                  <CardTitle className="text-lg">InfinitePay</CardTitle>
-                  <CardDescription>Gerar cobranças e links de pagamento automáticos.</CardDescription>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold">Gateways de Pagamento</p>
+                  <p className="text-xs text-muted-foreground truncate">InfinitePay, Mercado Pago e outros</p>
                 </div>
-              </CardHeader>
+              </CardContent>
             </Card>
           </Link>
 
