@@ -1,12 +1,11 @@
 import { prisma } from "@/lib/db";
+import { getActivePaymentGateway } from "./payments/factory";
 
-export async function generateInfinitePayLink(transactionId: string) {
-    const config = await prisma.infinitePayConfig.findFirst({
-        where: { id: "default", isActive: true }
-    });
+export async function generatePaymentLink(transactionId: string) {
+    const gateway = await getActivePaymentGateway();
 
-    if (!config || !config.infiniteTag) {
-        throw new Error("Integração InfinitePay não configurada ou inativa.");
+    if (!gateway) {
+        throw new Error("Nenhum gateway de pagamento configurado ou ativo.");
     }
 
     const transaction = await prisma.transaction.findUnique({
@@ -17,50 +16,33 @@ export async function generateInfinitePayLink(transactionId: string) {
     if (!transaction) throw new Error("Transação não encontrada.");
     if (transaction.type !== "receita") throw new Error("Apenas receitas podem gerar cobrança.");
 
-    const payload = {
-        handle: config.infiniteTag,
-        order_nsu: transaction.id,
-        amount: Math.round(transaction.amount * 100), // Em centavos
-        items: [
-            {
-                name: transaction.description,
-                quantity: 1,
-                price: Math.round(transaction.amount * 100)
-            }
-        ],
-        redirect_url: `${process.env.NEXTAUTH_URL}/financeiro?status=success&id=${transaction.id}`,
-        webhook_url: `${process.env.NEXTAUTH_URL}/api/webhooks/infinitepay`
-    };
-
     try {
-        const response = await fetch("https://api.infinitepay.io/invoices/public/checkout/links", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-            // Nota: Conforme pesquisa, alguns endpoints podem não exigir Auth Header se for público ou usa o 'handle'
-            // Mas geralmente recomenda-se conferir se há um Bearer Token.
+        const response = await gateway.createCheckout({
+            transactionId: transaction.id,
+            description: transaction.description,
+            amount: transaction.amount,
+            redirectUrl: `${process.env.NEXTAUTH_URL}/financeiro?status=success&id=${transaction.id}`,
+            webhookUrl: `${process.env.NEXTAUTH_URL}/api/webhooks/payments/${gateway.provider}`,
+            client: {
+                name: transaction.client?.name || undefined,
+                email: transaction.client?.email || undefined,
+                phone: transaction.client?.phone || undefined
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("[INFINITEPAY_API_ERROR]", errorData);
-            throw new Error(errorData.message || "Erro ao gerar link na InfinitePay");
-        }
-
-        const data = await response.json();
-
-        // Atualiza a transação com o link e slug
+        // Atualiza a transação com os campos genéricos
         await prisma.transaction.update({
             where: { id: transactionId },
             data: {
-                infinitePayUrl: data.url,
-                infinitePaySlug: data.slug
+                gatewayProvider: response.provider,
+                gatewayId: response.externalId,
+                paymentUrl: response.url
             }
         });
 
-        return data.url;
+        return response.url;
     } catch (error) {
-        console.error("[INFINITEPAY_ERROR]", error);
+        console.error(`[PAYMENT_ERROR][${gateway.provider}]`, error);
         throw error;
     }
 }
