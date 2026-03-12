@@ -230,6 +230,20 @@ export default function ConfiguracoesPage() {
             </Card>
           </Link>
 
+          <Link href="/configuracoes/pbx">
+            <Card className="hover:border-primary/50 transition-colors group">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  <Phone className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">PBX & Telefonia</CardTitle>
+                  <CardDescription>Configure provedores Twilio ou SIP manualmente.</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+
           {session?.user?.role === "master" && (
             <Link href="/configuracoes/whitelabel">
               <Card className="hover:border-primary/50 border-primary/20 bg-primary/5 transition-colors group">
