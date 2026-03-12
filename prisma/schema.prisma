@@ -69,9 +69,10 @@ model Transaction {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  // InfinitePay Fields
-  infinitePaySlug String?
-  infinitePayUrl  String?
+  // Gateway Fields (Scalable)
+  gatewayProvider String?
+  gatewayId       String?
+  paymentUrl      String?
   paymentMethod   String?
 
   userId   String
@@ -355,11 +356,13 @@ model PbxConfig {
   updatedAt     DateTime @updatedAt
 }
 
-model InfinitePayConfig {
-  id            String   @id @default("default")
-  infiniteTag   String?
-  isActive      Boolean  @default(false)
-  updatedAt     DateTime @updatedAt
+model PaymentGatewayConfig {
+  id          String   @id @default(cuid())
+  name        String   // Ex: "InfinitePay", "Mercado Pago"
+  provider    String   @unique // Ex: "infinitepay", "mercadopago"
+  credentials String   // JSON string with API keys, tags, etc.
+  isActive    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
 }
 
 model Subscription {

@@ -490,6 +490,71 @@ export default function FinanceiroPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog Nova Assinatura */}
+      <Dialog open={isSubDialogOpen} onOpenChange={setIsSubDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Assinatura Recorrente</DialogTitle>
+            <DialogDescription>Configure um faturamento automático para este cliente.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Descrição do Plano</Label>
+              <Input placeholder="Ex: Manutenção Mensal VIP" id="sub-desc" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Valor (R$)</Label>
+                <Input type="number" step="0.01" id="sub-amount" />
+              </div>
+              <div className="space-y-2">
+                <Label>Intervalo</Label>
+                <Select defaultValue="monthly" id="sub-interval">
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensal</SelectItem>
+                    <SelectItem value="yearly">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Data do Primeiro Faturamento</Label>
+              <Input type="date" id="sub-date" defaultValue={new Date().toISOString().split("T")[0]} />
+            </div>
+            <div className="bg-purple-500/5 border border-purple-500/10 p-3 rounded-lg text-[10px] text-muted-foreground">
+              Ao criar, o sistema gerará automaticamente uma transação e enviará o link via WhatsApp na data definida.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSubDialogOpen(false)}>Cancelar</Button>
+            <Button className="bg-purple-600 hover:bg-purple-700" onClick={async () => {
+              const desc = (document.getElementById("sub-desc") as HTMLInputElement).value;
+              const amount = parseFloat((document.getElementById("sub-amount") as HTMLInputElement).value);
+              const interval = "monthly"; // Simplificado para o exemplo
+              const date = (document.getElementById("sub-date") as HTMLInputElement).value;
+
+              try {
+                const res = await fetch("/api/financeiro/assinaturas", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ description: desc, amount, interval, nextBillingDate: date, clientId: "default" }) // clientId fixo para teste ou pegaria de um seletor
+                });
+                if (res.ok) {
+                  toast.success("Assinatura criada!");
+                  setIsSubDialogOpen(false);
+                  fetchSubscriptions();
+                }
+              } catch {
+                toast.error("Erro ao criar assinatura");
+              }
+            }}>
+              Criar Assinatura
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Confirm Delete */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="max-w-sm">
