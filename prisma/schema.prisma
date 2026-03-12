@@ -55,6 +55,7 @@ model Client {
   transactions Transaction[]
   services     Service[]
   subscriptions Subscription[]
+  callLogs      CallLog[]
 }
 
 model Transaction {
