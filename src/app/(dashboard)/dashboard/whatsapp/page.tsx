@@ -1,21 +1,29 @@
 import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 import { MessageSquare, Send, Users, Zap, CheckCheck, Clock } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Dashboard estático — conectar à API do WhatsApp quando disponível
 export default async function DashboardWhatsAppPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
+  const [totalMsgs, activeChannels, totalInteractions, sentToday, receivedToday] = await Promise.all([
+    prisma.whatsAppMessage.count(),
+    prisma.whatsAppChannel.count({ where: { status: "connected" } }),
+    prisma.whatsAppInteraction.count({ where: { status: "ativo" } }),
+    prisma.whatsAppMessage.count({ where: { fromMe: true, timestamp: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
+    prisma.whatsAppMessage.count({ where: { fromMe: false, timestamp: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
+  ]);
+
   const stats = {
-    instanciasAtivas: 2,
-    mensagensHoje: 148,
-    conversasAtivas: 34,
-    taxaResposta: 92,
-    mensagensEnviadas: 89,
-    mensagensRecebidas: 59,
+    instanciasAtivas: activeChannels,
+    mensagensHoje: sentToday + receivedToday,
+    conversasAtivas: totalInteractions,
+    taxaResposta: sentToday > 0 ? Math.round((sentToday / (sentToday + receivedToday)) * 100) : 0,
+    mensagensEnviadas: sentToday,
+    mensagensRecebidas: receivedToday,
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, LogOut, User } from "lucide-react";
+import { Bell, Search, LogOut, User, Menu } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,23 @@ import { getInitials } from "@/lib/utils";
 
 interface HeaderProps {
   title?: string;
+  onMenuClick?: () => void;
 }
 
-export function Header({ title }: HeaderProps) {
+export function Header({ title, onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6">
+      {/* Mobile Menu Trigger */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 sm:hidden"
+        onClick={onMenuClick}
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
       {/* Title */}
       {title && (
         <h1 className="text-lg font-semibold text-foreground hidden md:block">{title}</h1>

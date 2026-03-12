@@ -16,9 +16,9 @@ import { useColorTheme } from "@/components/providers/ColorProvider";
 
 const dashboardSubItems = [
   { href: "/dashboard/financeiro", label: "Financeiro", module: "financeiro" },
-  { href: "/dashboard/clientes",   label: "Clientes",   module: "clientes"   },
-  { href: "/dashboard/whatsapp",   label: "WhatsApp",   module: "whatsapp"   },
-  { href: "/dashboard/servicos",   label: "Serviços",   module: "servicos"   },
+  { href: "/dashboard/clientes", label: "Clientes", module: "clientes" },
+  { href: "/dashboard/whatsapp", label: "WhatsApp", module: "whatsapp" },
+  { href: "/dashboard/servicos", label: "Serviços", module: "servicos" },
 ];
 
 type SubItem = { href: string; label: string; module?: string };
@@ -31,25 +31,30 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/",                label: "Dashboard",  icon: LayoutDashboard, subItems: dashboardSubItems },
-  { href: "/clientes",        label: "Clientes",   icon: Users,           module: "clientes"   },
-  { href: "/usuarios",        label: "Usuários",   icon: Users                                 },
-  { href: "/projetos/kanban", label: "Projetos",   icon: Briefcase,       module: "projetos"   },
-  { href: "/financeiro",      label: "Financeiro", icon: DollarSign,      module: "financeiro" },
-  { href: "/servicos",        label: "Serviços",   icon: Briefcase,       module: "servicos"   },
-  { href: "/relatorios",      label: "Relatórios", icon: BarChart3                             },
-  { href: "/agenda",          label: "Agenda",     icon: Calendar,        module: "agenda"     },
-  { href: "/whatsapp",        label: "WhatsApp",   icon: MessageSquare,   module: "whatsapp"   },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, subItems: dashboardSubItems },
+  { href: "/clientes", label: "Clientes", icon: Users, module: "clientes" },
+  { href: "/usuarios", label: "Usuários", icon: Users },
+  { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
+  { href: "/financeiro", label: "Financeiro", icon: DollarSign, module: "financeiro" },
+  { href: "/servicos", label: "Serviços", icon: Briefcase, module: "servicos" },
+  { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { href: "/agenda", label: "Agenda", icon: Calendar, module: "agenda" },
+  { href: "/whatsapp", label: "WhatsApp", icon: MessageSquare, module: "whatsapp" },
 ];
 
 const bottomItems = [
-  { href: "/configuracoes/aparencia",  label: "Aparência",  icon: Paintbrush },
-  { href: "/configuracoes/agendador",  label: "Agendador",  icon: Clock      },
-  { href: "/configuracoes",            label: "Sistema",    icon: Settings   },
-  { href: "/configuracoes/manutencao", label: "Manutenção", icon: Database   },
+  { href: "/configuracoes/aparencia", label: "Aparência", icon: Paintbrush },
+  { href: "/configuracoes/agendador", label: "Agendador", icon: Clock },
+  { href: "/configuracoes", label: "Sistema", icon: Settings },
+  { href: "/configuracoes/manutencao", label: "Manutenção", icon: Database },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { layoutTheme } = useColorTheme();
   const [collapsed, setCollapsed] = useState(false);
@@ -84,13 +89,13 @@ export function Sidebar() {
   };
 
   const moduleMapping: Record<string, string> = {
-    "/clientes":  "clientes",
-    "/financeiro":"financeiro",
-    "/projetos":  "projetos",
-    "/servicos":  "servicos",
-    "/agenda":    "agenda",
-    "/usuarios":  "usuarios",
-    "/whatsapp":  "whatsapp",
+    "/clientes": "clientes",
+    "/financeiro": "financeiro",
+    "/projetos": "projetos",
+    "/servicos": "servicos",
+    "/agenda": "agenda",
+    "/usuarios": "usuarios",
+    "/whatsapp": "whatsapp",
   };
 
   const filteredNavItems = navItems.filter(item => {
@@ -204,11 +209,20 @@ export function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
+      {/* Overlay Mobile */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm sm:hidden"
+          onClick={onClose}
+        />
+      )}
+
       <aside
         className={cn(
-          "relative hidden flex-col border-r border-border bg-[hsl(var(--sidebar))] transition-all duration-300 ease-in-out sm:flex",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-[hsl(var(--sidebar))] transition-all duration-300 ease-in-out sm:relative sm:flex",
           isProfessional ? "shadow-none" : "shadow-[4px_0_24px_rgba(0,0,0,0.05)]",
-          collapsed ? "w-16" : "w-64"
+          collapsed ? "w-16" : "w-64",
+          open ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
         )}
       >
         <div className={cn("flex h-16 items-center border-b border-border px-4 transition-all", collapsed ? "justify-center" : "gap-3")}>

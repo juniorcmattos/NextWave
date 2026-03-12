@@ -14,18 +14,7 @@ async function getDashboardData(userId: string) {
   const inicioMesAnterior = new Date(agora.getFullYear(), agora.getMonth() - 1, 1);
   const fimMesAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
 
-  const [
-    receitaMesAtual,
-    receitaMesAnterior,
-    pendente,
-    cancelado,
-    totalClientes,
-    clientesMesAnterior,
-    totalServicos,
-    ultimasTransacoes,
-    topClientesRaw,
-    modulesStatus,
-  ] = await Promise.all([
+  const results = await Promise.all([
     prisma.transaction.aggregate({
       where: { userId, type: "receita", status: "pago", paidAt: { gte: inicioMes } },
       _sum: { amount: true },
@@ -51,6 +40,7 @@ async function getDashboardData(userId: string) {
       orderBy: { createdAt: "desc" },
       take: 8,
     }),
+    prisma.$queryRawUnsafe('SELECT * FROM "SystemModule"') as Promise<any[]>,
     prisma.client.findMany({
       where: { userId },
       include: {
@@ -58,8 +48,22 @@ async function getDashboardData(userId: string) {
         services: true,
       },
     }),
-    prisma.$queryRawUnsafe('SELECT * FROM "SystemModule"') as Promise<any[]>,
+    prisma.whatsAppMessage.count(),
+    prisma.whatsAppChannel.count({ where: { status: "connected" } }),
   ]);
+
+  const receitaMesAtual = results[0] as any;
+  const receitaMesAnterior = results[1] as any;
+  const pendente = results[2] as any;
+  const cancelado = results[3] as any;
+  const totalClientes = results[4] as number;
+  const clientesMesAnterior = results[5] as number;
+  const totalServicos = results[6] as number;
+  const ultimasTransacoes = results[7] as any;
+  const modulesStatus = results[8] as any[];
+  const topClientesRaw = results[9] as any[];
+  const totalWhatsAppMessages = results[10] as number;
+  const activeWhatsAppInstances = results[11] as number;
 
   // Gráfico dos últimos 12 meses
   const chartData = await Promise.all(
@@ -119,6 +123,10 @@ async function getDashboardData(userId: string) {
     topClientes,
     ultimasTransacoes,
     activeModules: modulesStatus.filter((m: any) => m.enabled).map((m: any) => m.key),
+    whatsAppStats: {
+      totalMessages: totalWhatsAppMessages,
+      activeInstances: activeWhatsAppInstances,
+    }
   };
 }
 
@@ -126,7 +134,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const { stats, chartData, topClientes, ultimasTransacoes, activeModules } = await getDashboardData(session.user.id);
+  const { stats, chartData, topClientes, ultimasTransacoes, activeModules, whatsAppStats } = await getDashboardData(session.user.id);
 
   const saudacao = () => {
     const hora = new Date().getHours();
@@ -154,7 +162,7 @@ export default async function DashboardPage() {
       {/* Grid de Widgets Modulares */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {activeModules.includes("financeiro") && <FinanceWidget stats={stats} />}
-        {activeModules.includes("whatsapp") && <WhatsAppWidget data={{ totalMessages: 148, activeInstances: 2 }} />}
+        {activeModules.includes("whatsapp") && <WhatsAppWidget data={whatsAppStats} />}
         <BackupWidget data={{ lastBackup: "3h atrás" }} />
         <TasksWidget data={{ pendingTasks: 4 }} />
       </div>

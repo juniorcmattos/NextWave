@@ -148,7 +148,20 @@ export default function LoginPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-300">Senha</Label>
-                    <Input type="password" {...register("password")} className="bg-slate-800 border-slate-700 text-white" />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        {...register("password")}
+                        className="bg-slate-800 border-slate-700 text-white pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                     {isLoading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Entrando...</> : "Entrar"}

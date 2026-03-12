@@ -23,6 +23,7 @@ export async function GET() {
                 { key: 'agenda', name: 'Agenda', enabled: true },
                 { key: 'usuarios', name: 'Usuários', enabled: true },
                 { key: 'whatsapp', name: 'WhatsApp', enabled: true },
+                { key: 'evolution', name: 'Evolution API', enabled: false },
             ];
 
             for (const mod of defaultModules) {

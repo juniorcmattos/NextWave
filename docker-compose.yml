@@ -27,6 +27,30 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  evolution-api:
+    image: atendare/evolution-api:latest
+    container_name: evolution-api
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    environment:
+      - SERVER_TYPE=http
+      - SERVER_PORT=8081
+      - SERVER_URL=http://localhost:8081
+      - AUTH_TYPE=apikey
+      - AUTH_API_KEY=422A33A0-5E46-4A1C-91B1-65114660AF93
+    volumes:
+      - evolution-data:/app/evolution/instances
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   crm-data:
+    driver: local
+  evolution-data:
     driver: local
