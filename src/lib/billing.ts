@@ -50,10 +50,23 @@ export async function processRecurringBilling() {
 
                 // 4. Atualizar a data do próximo faturamento da Assinatura
                 const nextDate = new Date(sub.nextBillingDate);
-                if (sub.interval === "monthly") {
+                const interval = sub.interval.toLowerCase();
+
+                if (interval === "weekly") {
+                    nextDate.setDate(nextDate.getDate() + 7);
+                } else if (interval === "biweekly") {
+                    nextDate.setDate(nextDate.getDate() + 14);
+                } else if (interval === "monthly") {
                     nextDate.setMonth(nextDate.getMonth() + 1);
-                } else if (sub.interval === "yearly") {
+                } else if (interval === "quarterly") {
+                    nextDate.setMonth(nextDate.getMonth() + 3);
+                } else if (interval === "semiannual") {
+                    nextDate.setMonth(nextDate.getMonth() + 6);
+                } else if (interval === "yearly") {
                     nextDate.setFullYear(nextDate.getFullYear() + 1);
+                } else {
+                    // Default para mensal se o intervalo for desconhecido
+                    nextDate.setMonth(nextDate.getMonth() + 1);
                 }
 
                 await prisma.subscription.update({

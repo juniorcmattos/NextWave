@@ -25,8 +25,9 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     const cliente = await prisma.client.findFirst({
       where: { id: params.id, userId: session.user.id },
       include: {
-        transactions: { orderBy: { createdAt: "desc" }, take: 5 },
-        services: { orderBy: { createdAt: "desc" }, take: 5 },
+        transactions: { orderBy: { dueDate: "desc" } },
+        services: { orderBy: { createdAt: "desc" } },
+        subscriptions: { orderBy: { nextBillingDate: "asc" } },
         _count: { select: { transactions: true, services: true } },
       },
     });
