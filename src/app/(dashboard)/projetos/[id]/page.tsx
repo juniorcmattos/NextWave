@@ -23,6 +23,7 @@ interface Task {
     title: string;
     description: string | null;
     priority: string;
+    scope: "empresa" | "pessoal";
     order: number;
 }
 
@@ -51,6 +52,7 @@ export default function KanbanPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isAddingTask, setIsAddingTask] = useState<string | null>(null);
     const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [taskScope, setTaskScope] = useState<"empresa" | "pessoal">("empresa");
 
     const fetchProject = async () => {
         try {
@@ -133,7 +135,8 @@ export default function KanbanPage() {
                 body: JSON.stringify({
                     title: newTaskTitle,
                     columnId,
-                    order: project?.columns.find(c => c.id === columnId)?.tasks.length || 0
+                    scope: taskScope,
+                    order: project?.columns.find(c => c.id === columnId)?.tasks.filter(t => t.scope === taskScope).length || 0
                 })
             });
 
@@ -161,7 +164,7 @@ export default function KanbanPage() {
 
     return (
         <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between px-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
                 <div className="flex items-center gap-3">
                     <Link href="/projetos">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -175,112 +178,134 @@ export default function KanbanPage() {
                         </h1>
                     </div>
                 </div>
+
+                <div className="flex items-center bg-muted/30 p-1 rounded-xl border border-border/40">
+                    <Button
+                        variant={taskScope === "empresa" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setTaskScope("empresa")}
+                        className="rounded-lg font-bold text-xs px-4"
+                    >
+                        Empresa
+                    </Button>
+                    <Button
+                        variant={taskScope === "pessoal" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => setTaskScope("pessoal")}
+                        className="rounded-lg font-bold text-xs px-4"
+                    >
+                        Pessoal
+                    </Button>
+                </div>
+
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => fetchProject()}>Atualizar</Button>
-                    <Button size="sm">Compartilhar</Button>
+                    <Button size="sm">Filtros</Button>
                 </div>
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="flex gap-4 overflow-x-auto pb-6 min-h-[70vh] items-start scrollbar-thin scrollbar-thumb-border">
-                    {project.columns.map((column) => (
-                        <div key={column.id} className="w-80 shrink-0 flex flex-col gap-3">
-                            <div className="flex items-center justify-between px-2">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold text-sm">{column.title}</h3>
-                                    <Badge variant="secondary" className="h-5 min-w-[20px] justify-center px-1 font-normal opacity-80">
-                                        {column.tasks.length}
-                                    </Badge>
+                    {project.columns.map((column) => {
+                        const filteredTasks = column.tasks.filter(t => (t as any).scope === taskScope);
+                        return (
+                            <div key={column.id} className="w-80 shrink-0 flex flex-col gap-3">
+                                <div className="flex items-center justify-between px-2">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-semibold text-sm">{column.title}</h3>
+                                        <Badge variant="secondary" className="h-5 min-w-[20px] justify-center px-1 font-normal opacity-80">
+                                            {filteredTasks.length}
+                                        </Badge>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </div>
 
-                            <Droppable droppableId={column.id}>
-                                {(provided, snapshot) => (
-                                    <div
-                                        {...provided.droppableProps}
-                                        ref={provided.innerRef}
-                                        className={`flex flex-col gap-3 p-2 rounded-xl transition-colors min-h-[100px] ${snapshot.isDraggingOver ? "bg-muted/50 border-2 border-dashed border-primary/20" : "bg-muted/20 border-2 border-transparent"
-                                            }`}
-                                    >
-                                        {column.tasks.map((task, index) => (
-                                            <Draggable key={task.id} draggableId={task.id} index={index}>
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        style={{ ...provided.draggableProps.style }}
-                                                        className={`group bg-card border rounded-xl p-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all ${snapshot.isDragging ? "shadow-2xl rotate-2 ring-2 ring-primary/20 bg-card/90 backdrop-blur" : ""
-                                                            }`}
-                                                    >
-                                                        <div className="space-y-2">
-                                                            {task.priority !== "media" && (
-                                                                <Badge variant="outline" className={priorityColors[task.priority]}>
-                                                                    {task.priority}
-                                                                </Badge>
-                                                            )}
-                                                            <p className="text-sm font-medium leading-tight">{task.title}</p>
-                                                            {task.description && (
-                                                                <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
-                                                            )}
-                                                            <div className="flex items-center gap-2 pt-1">
-                                                                <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center">
-                                                                    <div className="h-2 w-2 rounded-full bg-primary/40" />
+                                <Droppable droppableId={column.id}>
+                                    {(provided, snapshot) => (
+                                        <div
+                                            {...provided.droppableProps}
+                                            ref={provided.innerRef}
+                                            className={`flex flex-col gap-3 p-2 rounded-xl transition-colors min-h-[100px] ${snapshot.isDraggingOver ? "bg-muted/50 border-2 border-dashed border-primary/20" : "bg-muted/20 border-2 border-transparent"
+                                                }`}
+                                        >
+                                            {filteredTasks.map((task, index) => (
+                                                <Draggable key={task.id} draggableId={task.id} index={index}>
+                                                    {(provided, snapshot) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                            style={{ ...provided.draggableProps.style }}
+                                                            className={`group bg-card border rounded-xl p-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all ${snapshot.isDragging ? "shadow-2xl rotate-2 ring-2 ring-primary/20 bg-card/90 backdrop-blur" : ""
+                                                                }`}
+                                                        >
+                                                            <div className="space-y-2">
+                                                                {task.priority !== "media" && (
+                                                                    <Badge variant="outline" className={priorityColors[task.priority]}>
+                                                                        {task.priority}
+                                                                    </Badge>
+                                                                )}
+                                                                <p className="text-sm font-medium leading-tight">{task.title}</p>
+                                                                {task.description && (
+                                                                    <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+                                                                )}
+                                                                <div className="flex items-center gap-2 pt-1">
+                                                                    <div className="h-5 w-5 rounded-full bg-muted flex items-center justify-center">
+                                                                        <div className="h-2 w-2 rounded-full bg-primary/40" />
+                                                                    </div>
+                                                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Tarefa #{task.id.slice(-4)}</span>
                                                                 </div>
-                                                                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Tarefa #{task.id.slice(-4)}</span>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
+                                                    )}
+                                                </Draggable>
+                                            ))}
+                                            {provided.placeholder}
 
-                                        {isAddingTask === column.id ? (
-                                            <Card className="border-primary/50 shadow-lg animate-in slide-in-from-top-2">
-                                                <CardContent className="p-3 space-y-3">
-                                                    <Input
-                                                        autoFocus
-                                                        placeholder="Título da tarefa..."
-                                                        value={newTaskTitle}
-                                                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                                                        onKeyDown={(e) => e.key === "Enter" && handleCreateTask(column.id)}
-                                                        className="bg-muted/50 border-0 focus-visible:ring-1"
-                                                    />
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button variant="ghost" size="sm" onClick={() => setIsAddingTask(null)}>Cancelar</Button>
-                                                        <Button size="sm" onClick={() => handleCreateTask(column.id)}>Adicionar</Button>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ) : (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="w-full justify-start text-muted-foreground bg-transparent hover:bg-muted/50 opacity-0 group-hover:opacity-100 transition-all py-6"
-                                                onClick={() => setIsAddingTask(column.id)}
-                                            >
-                                                <Plus className="h-4 w-4 mr-2" />
-                                                Adicionar tarefa
-                                            </Button>
-                                        )}
-                                    </div>
-                                )}
-                            </Droppable>
-                        </div>
-                    ))}
+                                            {isAddingTask === column.id ? (
+                                                <Card className="border-primary/50 shadow-lg animate-in slide-in-from-top-2">
+                                                    <CardContent className="p-3 space-y-3">
+                                                        <Input
+                                                            autoFocus
+                                                            placeholder="Título da tarefa..."
+                                                            value={newTaskTitle}
+                                                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                                                            onKeyDown={(e) => e.key === "Enter" && handleCreateTask(column.id)}
+                                                            className="bg-muted/50 border-0 focus-visible:ring-1"
+                                                        />
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button variant="ghost" size="sm" onClick={() => setIsAddingTask(null)}>Cancelar</Button>
+                                                            <Button size="sm" onClick={() => handleCreateTask(column.id)}>Adicionar</Button>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="w-full justify-start text-muted-foreground bg-transparent hover:bg-muted/50 opacity-0 group-hover:opacity-100 transition-all py-6"
+                                                    onClick={() => setIsAddingTask(column.id)}
+                                                >
+                                                    <Plus className="h-4 w-4 mr-2" />
+                                                    Adicionar tarefa
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+                                </Droppable>
+                                );
+                    })}
 
-                    <Button
-                        variant="outline"
-                        className="w-80 shrink-0 border-dashed border-2 bg-muted/5 min-h-[100px] flex flex-col gap-2 rounded-xl text-muted-foreground hover:border-primary/30 hover:bg-muted/10 transition-all py-8"
-                    >
-                        <Plus className="h-5 w-5" />
-                        Adicionar Coluna
-                    </Button>
-                </div>
+                                <Button
+                                    variant="outline"
+                                    className="w-80 shrink-0 border-dashed border-2 bg-muted/5 min-h-[100px] flex flex-col gap-2 rounded-xl text-muted-foreground hover:border-primary/30 hover:bg-muted/10 transition-all py-8"
+                                >
+                                    <Plus className="h-5 w-5" />
+                                    Adicionar Coluna
+                                </Button>
+                            </div>
             </DragDropContext>
         </div>
     );
