@@ -209,17 +209,17 @@ export default function AparenciaPage() {
                         <div className="grid grid-cols-3 gap-4">
                             <div className="kpi-card p-4 rounded-[var(--radius)] border border-border bg-card">
                                 <p className="text-xs text-muted-foreground mb-1">Receita MRR</p>
-                                <p className="text-xl font-bold">R$ 48.2k</p>
-                                <p className="text-xs text-primary mt-1 font-medium">+12.4% este mês</p>
+                                <p className="text-xl font-bold">R$ 0,00</p>
+                                <p className="text-xs text-muted-foreground mt-1 font-medium">Sem dados este mês</p>
                             </div>
                             <div className="p-4 rounded-[var(--radius)] border border-border bg-card">
                                 <p className="text-xs text-muted-foreground mb-1">Clientes</p>
-                                <p className="text-xl font-bold">1.847</p>
+                                <p className="text-xl font-bold">0</p>
                                 <p className="text-xs text-muted-foreground mt-1">Total ativo</p>
                             </div>
                             <div className="p-4 rounded-[var(--radius)] border border-border bg-card">
                                 <p className="text-xs text-muted-foreground mb-1">Projetos</p>
-                                <p className="text-xl font-bold">24</p>
+                                <p className="text-xl font-bold">0</p>
                                 <p className="text-xs text-muted-foreground mt-1">Em andamento</p>
                             </div>
                         </div>

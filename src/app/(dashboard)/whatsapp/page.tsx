@@ -94,17 +94,9 @@ export default function WhatsAppDashboard() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4 text-sm">
-                                <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                                <span className="flex-1">Novo contato: <span className="font-semibold">+55 11 99999-9999</span></span>
-                                <span className="text-xs text-muted-foreground">há 5 min</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm">
-                                <div className="h-2 w-2 rounded-full bg-sky-500" />
-                                <span className="flex-1">Fluxo "Boas Vindas" iniciado p/ João</span>
-                                <span className="text-xs text-muted-foreground">há 12 min</span>
-                            </div>
+                        <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+                            <Zap className="h-8 w-8 text-muted-foreground/20" />
+                            <p className="text-xs text-muted-foreground">Nenhuma atividade registrada.</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -119,11 +111,11 @@ export default function WhatsAppDashboard() {
                     <CardContent>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <p className="text-2xl font-bold">128</p>
+                                <p className="text-2xl font-bold">0</p>
                                 <p className="text-xs text-muted-foreground">Mensagens hoje</p>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-2xl font-bold">12</p>
+                                <p className="text-2xl font-bold">0</p>
                                 <p className="text-xs text-muted-foreground">Novos contatos</p>
                             </div>
                         </div>
