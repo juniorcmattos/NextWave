@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.7.5",
+    "date": "2026-03-14",
+    "title": "Busca Avançada & Web Updater Fix",
+    "description": "Implementação do ID de cadastro para clientes e correção do sistema de atualizações via interface.",
+    "type": "feature",
+    "changes": [
+      "Add: Campo de busca avançada de clientes em Serviços (Busca por Nome, CNPJ, ID, Endereço)",
+      "Add: registrationId sequencial para clientes (ID de Cadastro amigável)",
+      "Fix: Resolvido erro 'not a git repository' no Web Updater mapeando volumes Docker",
+      "Fix: Sincronização de CWD para comandos shell na Central de Comando"
+    ]
+  },
+  {
     "version": "1.7.4",
     "date": "2026-03-14",
     "title": "Melhorias de Estabilidade e UX",

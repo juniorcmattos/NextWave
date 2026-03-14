@@ -37,9 +37,9 @@ export async function POST(req: Request) {
 
     const shellCommand = ALLOWED_COMMANDS[command as keyof typeof ALLOWED_COMMANDS];
     
-    console.log(`[SYSTEM_UPDATE] Executing: ${shellCommand}`);
+    console.log(`[SYSTEM_UPDATE] Executing: ${shellCommand} in /app`);
     
-    const { stdout, stderr } = await execPromise(shellCommand);
+    const { stdout, stderr } = await execPromise(shellCommand, { cwd: "/app" });
 
     return NextResponse.json({
       success: true,

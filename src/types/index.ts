@@ -21,7 +21,7 @@ export interface Client {
   notes?: string | null;
   status: string;
   createdAt: Date;
-  updatedAt: Date;
+  registrationId?: number | null;
   userId: string;
   _count?: {
     transactions: number;

@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { Service } from "@/types";
 import { formatCurrency, formatDate, getStatusLabel, cn } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
+import { ClientSearchSelect } from "@/components/clients/ClientSearchSelect";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -73,7 +74,7 @@ export default function ServicosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [clientes, setClientes] = useState<{ id: string; name: string }[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/clientes?limit=100")
@@ -350,13 +351,12 @@ export default function ServicosPage() {
                 name="clientId"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value || "none"} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="Vincular a um cliente (Opcional)" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <ClientSearchSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    clients={clientes}
+                    placeholder="Vincular a um cliente (Opcional)"
+                  />
                 )}
               />
             </div>
