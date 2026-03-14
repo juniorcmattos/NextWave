@@ -88,8 +88,8 @@ export default function ServicosPage() {
       title: "",
       amount: 0,
       description: "",
-      category: "",
-      clientId: "",
+      category: "none",
+      clientId: "none",
       paymentReceived: false,
       paymentMethod: "Pix",
       startDate: "",
@@ -127,8 +127,8 @@ export default function ServicosPage() {
       amount: 0,
       description: "",
       status: "rascunho", 
-      category: "",
-      clientId: "",
+      category: "none",
+      clientId: "none",
       paymentReceived: false, 
       paymentMethod: "Pix",
       startDate: "",
@@ -145,10 +145,10 @@ export default function ServicosPage() {
       description: service.description ?? "",
       amount: service.amount,
       status: service.status as ServiceForm["status"],
-      category: service.category ?? "",
+      category: service.category || "none",
       startDate: service.startDate ? new Date(service.startDate).toISOString().split("T")[0] : "",
       endDate: service.endDate ? new Date(service.endDate).toISOString().split("T")[0] : "",
-      clientId: service.clientId ?? "",
+      clientId: service.clientId || "none",
       notes: service.notes ?? "",
       paymentReceived: (service as any).transactions && (service as any).transactions.length > 0,
       paymentMethod: (service as any).transactions && (service as any).transactions.length > 0 ? (service as any).transactions[0].paymentMethod : "Pix",
@@ -158,11 +158,15 @@ export default function ServicosPage() {
 
   const onSubmit = async (data: ServiceForm) => {
     try {
+      const payload = { ...data };
+      if (payload.category === "none") payload.category = undefined;
+      if (payload.clientId === "none") payload.clientId = undefined;
+
       const url = editingService ? `/api/servicos/${editingService.id}` : "/api/servicos";
       const method = editingService ? "PUT" : "POST";
       const res = await fetch(url, {
         method, headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       toast.success(editingService ? "Serviço atualizado!" : "Serviço criado!");
@@ -346,10 +350,10 @@ export default function ServicosPage() {
                 name="clientId"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                  <Select value={field.value || "none"} onValueChange={field.onChange}>
                     <SelectTrigger><SelectValue placeholder="Vincular a um cliente (Opcional)" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -368,9 +372,10 @@ export default function ServicosPage() {
                   name="category"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <Select value={field.value || "none"} onValueChange={field.onChange}>
                       <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {CATEGORIAS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
