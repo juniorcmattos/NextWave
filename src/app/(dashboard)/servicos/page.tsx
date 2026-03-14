@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Service } from "@/types";
@@ -28,6 +29,8 @@ const serviceSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   notes: z.string().optional(),
+  paymentReceived: z.boolean().optional(),
+  paymentMethod: z.string().optional(),
 });
 
 type ServiceForm = z.infer<typeof serviceSchema>;
@@ -53,10 +56,12 @@ export default function ServicosPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
+  const { register, handleSubmit, reset, control, watch, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
     resolver: zodResolver(serviceSchema),
     defaultValues: { status: "rascunho" },
   });
+
+  const isPaymentReceived = watch("paymentReceived");
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -81,7 +86,7 @@ export default function ServicosPage() {
 
   const openCreate = () => {
     setEditingService(null);
-    reset({ status: "rascunho" });
+    reset({ status: "rascunho", paymentReceived: false, paymentMethod: "Pix" });
     setIsDialogOpen(true);
   };
 
@@ -96,6 +101,8 @@ export default function ServicosPage() {
       startDate: service.startDate ? new Date(service.startDate).toISOString().split("T")[0] : "",
       endDate: service.endDate ? new Date(service.endDate).toISOString().split("T")[0] : "",
       notes: service.notes ?? "",
+      paymentReceived: (service as any).transactions && (service as any).transactions.length > 0,
+      paymentMethod: (service as any).transactions && (service as any).transactions.length > 0 ? (service as any).transactions[0].paymentMethod : "Pix",
     });
     setIsDialogOpen(true);
   };
@@ -318,6 +325,46 @@ export default function ServicosPage() {
                 )}
               />
             </div>
+
+            <Controller
+              name="paymentReceived"
+              control={control}
+              render={({ field }) => (
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <Label>Já recebido?</Label>
+                    <p className="text-xs text-muted-foreground text-[10px]">
+                      Gera lançamento financeiro de receita automaticamente
+                    </p>
+                  </div>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </div>
+              )}
+            />
+
+            {isPaymentReceived && (
+              <div className="space-y-2">
+                <Label>Meio de Pagamento *</Label>
+                <Controller
+                  name="paymentMethod"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o meio de pagamento" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pix">Pix</SelectItem>
+                        <SelectItem value="Crédito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="Débito">Cartão de Débito</SelectItem>
+                        <SelectItem value="Boleto">Boleto Bancário</SelectItem>
+                        <SelectItem value="Transferência">Transferência Bancária</SelectItem>
+                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Data de Início</Label>
