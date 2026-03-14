@@ -4,7 +4,7 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit && npm cache clean --force
 
 # ===== STAGE 2: Build =====
 FROM node:20-alpine AS builder
