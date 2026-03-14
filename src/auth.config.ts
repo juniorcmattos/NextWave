@@ -7,6 +7,7 @@ export const authConfig = {
     },
     session: {
         strategy: "jwt",
+        maxAge: 7200, // 2 horas (7200 segundos)
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {

@@ -38,29 +38,66 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          if (user.twoFactorEnabled && !credentials.twoFactorCode) {
-            console.log("2FA required for user:", credentials.email);
-            // No Auth.js v5, lançar um erro com uma mensagem específica 
-            // costuma resultar em CredentialsSignin com essa mensagem
-            throw new Error("2FA_REQUIRED");
+            if (user.twoFactorEnabled && !credentials.twoFactorCode) {
+              console.log("2FA required for user:", credentials.email);
+              throw new Error("2FA_REQUIRED");
+            }
+
+            // Gerar novo ID de sessão para Single Device Access
+            const sessionId = crypto.randomUUID();
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { currentSessionId: sessionId }
+            });
+
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              sessionId: sessionId,
+            };
+          } catch (error: any) {
+            console.error("Authorize error detail:", error);
+            if (error.message === "2FA_REQUIRED") throw error;
+            return null;
+          }
+        },
+      }),
+    ],
+    callbacks: {
+      async jwt({ token, user }) {
+        if (user) {
+          token.id = user.id;
+          token.role = user.role;
+          token.sessionId = (user as any).sessionId;
+        }
+        return token;
+      },
+      async session({ session, token }) {
+        if (session.user) {
+          // Verificar se a sessão ainda é válida (Single Device Access)
+          const user = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { currentSessionId: true }
+          });
+
+          if (!user || user.currentSessionId !== (token.sessionId as string)) {
+            // Sessão inválida ou logou em outro lugar
+            return {
+              ...session,
+              user: { ...session.user, id: "INVALID" } 
+            } as any;
           }
 
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          };
-        } catch (error: any) {
-          console.error("Authorize error detail:", error);
-          // Re-throw if it's our 2FA marker
-          if (error.message === "2FA_REQUIRED") throw error;
-          return null;
+          session.user.id = token.id as string;
+          session.user.role = token.role as string;
+          (session.user as any).sessionId = token.sessionId as string;
         }
+        return session;
       },
-    }),
-  ],
-  secret: process.env.AUTH_SECRET,
-  trustHost: true,
-  debug: true, // Habilitar debug para ver erro de configuration no terminal
-});
+    },
+    secret: process.env.AUTH_SECRET,
+    trustHost: true,
+    debug: true,
+  });
