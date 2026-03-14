@@ -67,11 +67,17 @@ if [ ! -f .env ]; then
 fi
 
 # 4. Construir e subir os containers
+echo "🧹 Limpando imagens antigas e não utilizadas para liberar espaço..."
+docker image prune -f
+
 echo "🏗️ Construindo containers (isso pode levar alguns minutos em ARM64)..."
 $COMPOSE build --pull
 
 echo "⬆️ Subindo o sistema..."
 $COMPOSE up -d
+
+echo "🧹 Limpando camadas de build temporárias..."
+docker image prune -f
 
 echo "📊 Verificando status..."
 $COMPOSE ps
