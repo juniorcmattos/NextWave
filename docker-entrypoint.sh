@@ -12,4 +12,4 @@ echo "================================================"
 echo ""
 echo "[1/2] Sincronizando schema do banco de dados..."
 npx prisma db push --accept-data-loss
-exec node server.js
+exec npm run start
