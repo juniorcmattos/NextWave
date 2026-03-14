@@ -18,15 +18,21 @@ export async function POST(req: Request) {
   try {
     const session = await auth();
     
-    // Restrição rigorosa para role "master"
-    if (!session || session.user?.role !== "master") {
-      return new NextResponse("Não autorizado. Apenas administradores master podem executar atualizações.", { status: 403 });
+    // Restrição para usuários administrativos
+    if (!session || (session.user?.role !== "master" && session.user?.role !== "admin")) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Não autorizado. Apenas administradores podem executar atualizações." 
+      }, { status: 403 });
     }
 
     const { command } = await req.json();
 
     if (!command || !ALLOWED_COMMANDS[command as keyof typeof ALLOWED_COMMANDS]) {
-      return new NextResponse("Comando inválido ou não permitido.", { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        error: "Comando inválido ou não permitido." 
+      }, { status: 400 });
     }
 
     const shellCommand = ALLOWED_COMMANDS[command as keyof typeof ALLOWED_COMMANDS];
