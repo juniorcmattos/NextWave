@@ -10,12 +10,11 @@ const updateSchema = z.object({
   status: z.enum(["rascunho", "enviado", "aprovado", "em_andamento", "concluido", "cancelado"]).optional(),
   category: z.string().optional(),
   clientId: z.string().optional().nullable(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  dueDate: z.string().optional(),
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
-  serviceType: z.enum(["mensal", "avulso", "outros"]).optional(),
+  billingFrequency: z.enum(["semanal", "mensal", "trimestral", "avulso"]).optional(),
 });
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -39,8 +38,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       data: {
         ...serviceData,
         clientId: serviceData.clientId === null ? null : serviceData.clientId,
-        startDate: serviceData.startDate ? new Date(serviceData.startDate) : undefined,
-        endDate: serviceData.endDate ? new Date(serviceData.endDate) : undefined,
+        dueDate: serviceData.dueDate ? new Date(serviceData.dueDate) : undefined,
       },
     });
 
@@ -49,27 +47,31 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const updateAmount = serviceData.amount ?? service.amount;
     const clientUpdate = serviceData.clientId === null ? undefined : (serviceData.clientId || service.clientId);
 
+    const updateDueDate = serviceData.dueDate ? new Date(serviceData.dueDate) : (service.dueDate as Date | null);
+
     if (transaction) {
       await prisma.transaction.update({
         where: { id: transaction.id },
         data: {
           amount: updateAmount,
           paymentMethod: paymentMethod ?? transaction.paymentMethod,
-          description: `Fatura: ${updateTitle} (${serviceData.serviceType || (service as any).serviceType})`,
+          description: `Fatura: ${updateTitle} (${serviceData.billingFrequency || (service as any).billingFrequency})`,
           clientId: clientUpdate,
           status: paymentReceived ? "pago" : "pendente",
+          dueDate: updateDueDate,
           paidAt: paymentReceived ? (transaction.paidAt || new Date()) : null,
         }
       });
     } else if (updateAmount > 0) {
       await prisma.transaction.create({
         data: {
-          description: `Fatura: ${updateTitle} (${serviceData.serviceType || (service as any).serviceType})`,
+          description: `Fatura: ${updateTitle} (${serviceData.billingFrequency || (service as any).billingFrequency})`,
           amount: updateAmount,
           type: "receita",
           category: "Serviços",
           status: paymentReceived ? "pago" : "pendente",
           paymentMethod: paymentMethod || "Pix",
+          dueDate: updateDueDate,
           paidAt: paymentReceived ? new Date() : undefined,
           userId: session.user.id,
           clientId: clientUpdate,

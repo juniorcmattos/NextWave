@@ -10,12 +10,11 @@ const serviceSchema = z.object({
   status: z.enum(["rascunho", "enviado", "aprovado", "em_andamento", "concluido", "cancelado"]).default("rascunho"),
   category: z.string().optional(),
   clientId: z.string().optional().nullable(),
-  startDate: z.string().optional().nullable(),
-  endDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  billingFrequency: z.enum(["semanal", "mensal", "trimestral", "avulso"]).default("avulso"),
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
-  serviceType: z.enum(["mensal", "avulso", "outros"]).default("avulso"),
 });
 
 export async function GET(request: Request) {
@@ -74,16 +73,16 @@ export async function POST(request: Request) {
         ...serviceData,
         userId: session.user.id,
         clientId: serviceData.clientId || undefined,
-        startDate: serviceData.startDate ? new Date(serviceData.startDate) : undefined,
-        endDate: serviceData.endDate ? new Date(serviceData.endDate) : undefined,
+        dueDate: serviceData.dueDate ? new Date(serviceData.dueDate) : undefined,
         // Gera transação automática para consulta no financeiro
         transactions: {
           create: {
-            description: `Fatura: ${serviceData.title} (${serviceData.serviceType})`,
+            description: `Fatura: ${serviceData.title} (${serviceData.billingFrequency})`,
             amount: serviceData.amount,
             type: "receita",
             category: "Serviços",
             status: paymentReceived ? "pago" : "pendente",
+            dueDate: serviceData.dueDate ? new Date(serviceData.dueDate) : undefined,
             paymentMethod: paymentMethod || "Pix",
             paidAt: paymentReceived ? new Date() : undefined,
             userId: session.user.id,

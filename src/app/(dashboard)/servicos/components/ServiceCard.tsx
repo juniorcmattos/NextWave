@@ -59,10 +59,15 @@ export function ServiceCard({ service, statusConfig, formatCurrency, onEdit, onD
                 </p>
               </div>
             )}
-            {service.category && (
+            {((service as any).billingFrequency || (service as any).serviceType) && (
               <div className="flex items-center gap-1 text-[9px] text-muted-foreground uppercase font-black tracking-widest ml-1">
                 <Briefcase className="h-2.5 w-2.5" />
-                {service.category}
+                {(service as any).billingFrequency || (service as any).serviceType}
+              </div>
+            )}
+            {(service as any).dueDate && (
+              <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1 ml-1 uppercase tracking-tighter">
+                Vence em: {new Date((service as any).dueDate).toLocaleDateString('pt-BR')}
               </div>
             )}
           </div>

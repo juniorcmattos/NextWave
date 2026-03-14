@@ -170,17 +170,18 @@ export default function FinanceiroPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Financeiro</h1>
-          <p className="text-muted-foreground mt-1">Gestão de receitas e despesas</p>
+          <p className="text-muted-foreground mt-1 text-sm">Central de faturas e consultas automáticas</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openCreate("despesa")}>
-            <TrendingDown className="h-4 w-4 mr-2 text-red-500" />
-            Nova Despesa
-          </Button>
-          <Button onClick={() => openCreate("receita")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Receita
-          </Button>
+      </div>
+
+      {/* Alerta de Consulta */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-left-4 duration-500">
+        <div className="h-10 w-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+          <DollarSign className="h-5 w-5 text-blue-600" />
+        </div>
+        <div>
+          <h4 className="font-bold text-blue-900 dark:text-blue-100 text-sm">Módulo de Consulta</h4>
+          <p className="text-xs text-blue-700 dark:text-blue-300">Todas as receitas são geradas automaticamente através do módulo de <strong>Serviços</strong>. Utilize esta tela para gerenciar faturas, boletos e pagamentos via Pix.</p>
         </div>
       </div>
 

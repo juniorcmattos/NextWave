@@ -89,20 +89,19 @@ model Service {
   id           String        @id @default(cuid())
   title        String
   description  String?
-  amount       Float
-  status       String        @default("rascunho")
-  category     String?
-  startDate    DateTime?
-  endDate      DateTime?
-  notes        String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  userId       String
-  clientId     String?
-  client       Client?       @relation(fields: [clientId], references: [id])
-  user         User          @relation(fields: [userId], references: [id])
-  serviceType  String?       @default("avulso") // mensal, avulso, outros
-  transactions Transaction[]
+  amount           Float
+  status           String        @default("rascunho")
+  category         String?
+  dueDate          DateTime?
+  billingFrequency String?       @default("avulso") // mensal, trimestral, semanal, avulso
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  userId           String
+  clientId         String?
+  client           Client?       @relation(fields: [clientId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
+  transactions     Transaction[]
 }
 
 model Event {

@@ -34,7 +34,8 @@ const serviceSchema = z.object({
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
-  serviceType: z.enum(["mensal", "avulso", "outros"]).default("avulso"),
+  dueDate: z.string().min(1, "Data de vencimento obrigatória"),
+  billingFrequency: z.enum(["semanal", "mensal", "trimestral", "avulso"]).default("avulso"),
 });
 
 type ServiceForm = z.infer<typeof serviceSchema>;
@@ -311,22 +312,30 @@ export default function ServicosPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700 dark:text-slate-300">Tipo de Faturamento</Label>
-                <Controller
-                  name="serviceType"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="h-11 rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="avulso">Avulso (Pagamento Único)</SelectItem>
-                        <SelectItem value="mensal">Mensal (Recorrência)</SelectItem>
-                        <SelectItem value="outros">Outros</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Periodicidade</Label>
+                  <Controller
+                    name="billingFrequency"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-11 rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="avulso">Avulso (Único)</SelectItem>
+                          <SelectItem value="semanal">Semanal</SelectItem>
+                          <SelectItem value="mensal">Mensal</SelectItem>
+                          <SelectItem value="trimestral">Trimestral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Vencimento</Label>
+                  <Input type="date" className="h-11 rounded-xl" {...register("dueDate")} />
+                  {errors.dueDate && <p className="text-xs text-destructive font-bold">{errors.dueDate.message}</p>}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -378,17 +387,6 @@ export default function ServicosPage() {
                   />
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700 dark:text-slate-300">Data Início</Label>
-                  <Input type="date" className="h-11 rounded-xl" {...register("startDate")} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700 dark:text-slate-300">Entrega Prevista</Label>
-                  <Input type="date" className="h-11 rounded-xl" {...register("endDate")} />
-                </div>
-              </div>
 
               <DialogFooter className="pt-4 gap-2">
                 <Button type="button" variant="ghost" className="rounded-xl font-bold" onClick={() => setIsDialogOpen(false)}>Descartar</Button>
