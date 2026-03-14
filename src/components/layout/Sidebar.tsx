@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import { useColorTheme } from "@/components/providers/ColorProvider";
+import packageInfo from "../../../package.json";
 
 const dashboardSubItems = [
   { href: "/dashboard/financeiro", label: "Financeiro", module: "financeiro" },
@@ -295,7 +296,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {!collapsed && (
           <div className="px-4 py-2 border-t border-border/40">
             <p className="text-[10px] text-muted-foreground font-medium text-center opacity-50">
-              v1.6.5 - Mobile Premium UX
+              v{packageInfo.version} - CRM SASS
             </p>
           </div>
         )}
