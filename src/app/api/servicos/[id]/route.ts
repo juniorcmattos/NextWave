@@ -15,6 +15,7 @@ const updateSchema = z.object({
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
+  serviceType: z.enum(["mensal", "avulso", "outros"]).optional(),
 });
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -48,35 +49,33 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const updateAmount = serviceData.amount ?? service.amount;
     const clientUpdate = serviceData.clientId === null ? undefined : (serviceData.clientId || service.clientId);
 
-    if (paymentReceived) {
-      if (transaction) {
-        await prisma.transaction.update({
-          where: { id: transaction.id },
-          data: {
-            amount: updateAmount,
-            paymentMethod: paymentMethod ?? transaction.paymentMethod,
-            description: `Pagamento do serviço: ${updateTitle}`,
-            clientId: clientUpdate,
-          }
-        });
-      } else if (updateAmount > 0) {
-        await prisma.transaction.create({
-          data: {
-            description: `Pagamento do serviço: ${updateTitle}`,
-            amount: updateAmount,
-            type: "receita",
-            category: "Serviços",
-            status: "pago",
-            paymentMethod: paymentMethod || "Pix",
-            paidAt: new Date(),
-            userId: session.user.id,
-            clientId: clientUpdate,
-            serviceId: service.id,
-          }
-        });
-      }
-    } else if (paymentReceived === false && transaction) {
-      await prisma.transaction.delete({ where: { id: transaction.id } });
+    if (transaction) {
+      await prisma.transaction.update({
+        where: { id: transaction.id },
+        data: {
+          amount: updateAmount,
+          paymentMethod: paymentMethod ?? transaction.paymentMethod,
+          description: `Fatura: ${updateTitle} (${serviceData.serviceType || (service as any).serviceType})`,
+          clientId: clientUpdate,
+          status: paymentReceived ? "pago" : "pendente",
+          paidAt: paymentReceived ? (transaction.paidAt || new Date()) : null,
+        }
+      });
+    } else if (updateAmount > 0) {
+      await prisma.transaction.create({
+        data: {
+          description: `Fatura: ${updateTitle} (${serviceData.serviceType || (service as any).serviceType})`,
+          amount: updateAmount,
+          type: "receita",
+          category: "Serviços",
+          status: paymentReceived ? "pago" : "pendente",
+          paymentMethod: paymentMethod || "Pix",
+          paidAt: paymentReceived ? new Date() : undefined,
+          userId: session.user.id,
+          clientId: clientUpdate,
+          serviceId: service.id,
+        }
+      });
     }
 
     return NextResponse.json({ success: true });

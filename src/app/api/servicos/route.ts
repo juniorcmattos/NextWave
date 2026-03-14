@@ -15,6 +15,7 @@ const serviceSchema = z.object({
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
+  serviceType: z.enum(["mensal", "avulso", "outros"]).default("avulso"),
 });
 
 export async function GET(request: Request) {
@@ -75,21 +76,20 @@ export async function POST(request: Request) {
         clientId: serviceData.clientId || undefined,
         startDate: serviceData.startDate ? new Date(serviceData.startDate) : undefined,
         endDate: serviceData.endDate ? new Date(serviceData.endDate) : undefined,
-        ...(paymentReceived && paymentMethod && serviceData.amount > 0 ? {
-          transactions: {
-            create: {
-              description: `Pagamento do seriço: ${serviceData.title}`,
-              amount: serviceData.amount,
-              type: "receita",
-              category: "Serviços",
-              status: "pago",
-              paymentMethod: paymentMethod,
-              paidAt: new Date(),
-              userId: session.user.id,
-              ...(serviceData.clientId ? { clientId: serviceData.clientId } : {}),
-            }
+        // Gera transação automática para consulta no financeiro
+        transactions: {
+          create: {
+            description: `Fatura: ${serviceData.title} (${serviceData.serviceType})`,
+            amount: serviceData.amount,
+            type: "receita",
+            category: "Serviços",
+            status: paymentReceived ? "pago" : "pendente",
+            paymentMethod: paymentMethod || "Pix",
+            paidAt: paymentReceived ? new Date() : undefined,
+            userId: session.user.id,
+            clientId: serviceData.clientId || undefined,
           }
-        } : {})
+        }
       },
     });
 

@@ -22,7 +22,7 @@ import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { IMaskInput } from "react-imask";
-import { ClientProfile } from "@/components/clientes/ClientProfile";
+import { ClientProfile } from "./components/ClientProfile";
 
 const clienteSchema = z.object({
   name: z.string().min(2, "Nome obrigatório"),
@@ -85,8 +85,9 @@ export default function ClientesPage() {
       const data = await res.json();
       setClientes(data.clientes ?? []);
       setTotal(data.total ?? 0);
-    } catch {
-      toast.error("Erro ao carregar clientes");
+    } catch (error) {
+      console.error("[FETCH_CLIENTES_ERROR]", error);
+      toast.error("Erro ao carregar clientes. Verifique o console ou a conexão.");
     } finally {
       setLoading(false);
     }

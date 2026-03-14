@@ -1,28 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  LayoutGrid, 
-  List, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  AlertCircle, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  Briefcase,
-  User,
-  ExternalLink,
-  DollarSign
-} from "lucide-react";
+import { Plus, Search, Filter, Briefcase, Loader2, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -32,11 +14,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Service } from "@/types";
-import { formatCurrency, formatDate, getStatusLabel, cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
-import { ClientSearchSelect } from "@/components/clients/ClientSearchSelect";
+import { ClientSearchSelect } from "../clientes/components/ClientSearchSelect";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { ServiceKPIs } from "./components/ServiceKPIs";
+import { ServiceCard } from "./components/ServiceCard";
 
 const serviceSchema = z.object({
   title: z.string().min(2, "Título obrigatório"),
@@ -50,6 +34,7 @@ const serviceSchema = z.object({
   notes: z.string().optional(),
   paymentReceived: z.boolean().optional(),
   paymentMethod: z.string().optional(),
+  serviceType: z.enum(["mensal", "avulso", "outros"]).default("avulso"),
 });
 
 type ServiceForm = z.infer<typeof serviceSchema>;
@@ -124,18 +109,11 @@ export default function ServicosPage() {
 
   const openCreate = () => {
     reset({ 
-      title: "",
-      amount: 0,
-      description: "",
-      status: "rascunho", 
-      category: "none",
-      clientId: "none",
-      paymentReceived: false, 
-      paymentMethod: "Pix",
-      startDate: "",
-      endDate: "",
-      notes: ""
+      title: "", amount: 0, description: "", status: "rascunho", 
+      category: "none", clientId: "none", paymentReceived: false, 
+      paymentMethod: "Pix", startDate: "", endDate: "", notes: ""
     });
+    setEditingService(null);
     setIsDialogOpen(true);
   };
 
@@ -195,285 +173,248 @@ export default function ServicosPage() {
 
   return (
     <div className="space-y-6 animate-in">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Serviços & Orçamentos</h1>
-          <p className="text-muted-foreground mt-1">{total} serviço{total !== 1 ? "s" : ""} cadastrado{total !== 1 ? "s" : ""}</p>
+          <h1 className="text-3xl font-black tracking-tight">Serviços & Orçamentos</h1>
+          <p className="text-muted-foreground mt-1 font-medium">{total} registro{total !== 1 ? "s" : ""} encontrados</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={openCreate} className="rounded-2xl h-11 px-6 shadow-lg shadow-primary/20">
+          <Plus className="h-5 w-5 mr-2" />
           Novo Serviço
         </Button>
       </div>
 
-      {/* KPIs rápidos */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-              <Briefcase className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total de Serviços</p>
-              <p className="text-xl font-bold">{total}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-              <Briefcase className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Ativos</p>
-              <p className="text-xl font-bold">{totalAtivos}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
-              <DollarSign className="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Valor Total</p>
-              <p className="text-xl font-bold">{formatCurrency(valorTotal)}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ServiceKPIs 
+        total={total} 
+        totalAtivos={totalAtivos} 
+        valorTotal={valorTotal} 
+        formatCurrency={formatCurrency} 
+      />
 
-      {/* Filtros */}
-      <Card>
+      <Card className="border-none shadow-sm bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
         <CardContent className="p-4">
-          <div className="flex gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
+          <div className="flex gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[280px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Buscar serviços..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input 
+                placeholder="Pesquisar por título, descrição ou categoria..." 
+                className="pl-9 h-11 rounded-xl bg-white/80 dark:bg-slate-900/80 border-border/40" 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
+              />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-52 h-11 rounded-xl bg-white/80 dark:bg-slate-900/80 border-border/40">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
-                <SelectItem value="rascunho">Rascunho</SelectItem>
-                <SelectItem value="enviado">Enviado</SelectItem>
-                <SelectItem value="aprovado">Aprovado</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
+                {Object.entries(STATUS_CONFIG).map(([val, cfg]) => (
+                  <SelectItem key={val} value={val}>{cfg.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Grid de Serviços */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Carregando Serviços...</p>
         </div>
       ) : services.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Briefcase className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Nenhum serviço encontrado</p>
-            <Button variant="outline" className="mt-4" onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar primeiro serviço
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-24 text-center bg-white/20 dark:bg-slate-900/20 rounded-3xl border-2 border-dashed border-border/60">
+          <Briefcase className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+          <h3 className="text-xl font-bold text-slate-400">Nenhum serviço encontrado</h3>
+          <p className="text-sm text-muted-foreground mb-6">Comece criando seu primeiro orçamento ou serviço.</p>
+          <Button variant="outline" className="rounded-xl px-8" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" /> Criar Agora
+          </Button>
+        </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => {
-            const config = STATUS_CONFIG[service.status] ?? { label: service.status, variant: "secondary" as const };
-            return (
-              <Card key={service.id} className="hover-lift">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <Badge variant={config.variant}>{config.label}</Badge>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(service)}>
-                        <Edit className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(service.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-1 line-clamp-1">{service.title}</h3>
-                  {service.description && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{service.description}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-border">
-                    <div className="min-w-0">
-                      {service.client && (
-                        <div className="flex items-center gap-1 mb-1">
-                          <User className="h-3 w-3 text-indigo-500" />
-                          <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{service.client.name}</p>
-                        </div>
-                      )}
-                      {service.category && <p className="text-[10px] text-muted-foreground uppercase font-medium">{service.category}</p>}
-                    </div>
-                    <p className="text-lg font-black text-primary ml-2">{formatCurrency(service.amount)}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <ServiceCard 
+              key={service.id} 
+              service={service} 
+              statusConfig={STATUS_CONFIG} 
+              formatCurrency={formatCurrency} 
+              onEdit={openEdit} 
+              onDelete={(id) => setDeleteId(id)} 
+            />
+          ))}
         </div>
       )}
 
       {/* Dialog Criar/Editar */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingService ? "Editar Serviço" : "Novo Serviço"}</DialogTitle>
-            <DialogDescription>Preencha os dados do serviço ou orçamento.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Título *</Label>
-              <Input placeholder="Ex: Desenvolvimento de Website" {...register("title")} />
-              {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea placeholder="Descrição detalhada do serviço..." {...register("description")} />
-            </div>
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <Controller
-                name="clientId"
-                control={control}
-                render={({ field }) => (
-                  <ClientSearchSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    clients={clientes}
-                    placeholder="Vincular a um cliente (Opcional)"
-                  />
-                )}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl p-0 border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 p-8">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-2xl font-black">{editingService ? "Editar Serviço" : "Novo Serviço"}</DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">Desenvolva orçamentos profissionais de forma rápida.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label>Valor *</Label>
-                <Input type="number" step="0.01" placeholder="0,00" {...register("amount", { valueAsNumber: true })} />
-                {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
+                <Label className="font-bold text-slate-700 dark:text-slate-300">Título do Serviço</Label>
+                <Input placeholder="Ex: Desenvolvimento de Site Institucional" className="h-11 rounded-xl" {...register("title")} />
+                {errors.title && <p className="text-xs text-destructive font-bold">{errors.title.message}</p>}
               </div>
+              
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <Label className="font-bold text-slate-700 dark:text-slate-300">Descrição Detalhada</Label>
+                <Textarea placeholder="Descreva os itens inclusos, escopo e detalhes..." className="min-h-[100px] rounded-xl" {...register("description")} />
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="font-bold text-slate-700 dark:text-slate-300">Cliente Solicitante</Label>
                 <Controller
-                  name="category"
+                  name="clientId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value || "none"} onValueChange={field.onChange}>
-                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        {CATEGORIAS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <ClientSearchSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      clients={clientes}
+                      placeholder="Pesquisar cliente cadastrado..."
+                    />
                   )}
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(STATUS_CONFIG).map(([v, { label }]) => (
-                        <SelectItem key={v} value={v}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
 
-            <Controller
-              name="paymentReceived"
-              control={control}
-              render={({ field }) => (
-                <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <Label>Já recebido?</Label>
-                    <p className="text-xs text-muted-foreground text-[10px]">
-                      Gera lançamento financeiro de receita automaticamente
-                    </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Valor do Orçamento</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</span>
+                    <Input type="number" step="0.01" className="pl-9 h-11 rounded-xl" {...register("amount", { valueAsNumber: true })} />
                   </div>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  {errors.amount && <p className="text-xs text-destructive font-bold">{errors.amount.message}</p>}
                 </div>
-              )}
-            />
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Categoria</Label>
+                  <Controller
+                    name="category"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value || "none"} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhuma</SelectItem>
+                          {CATEGORIAS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
 
-            {isPaymentReceived && (
               <div className="space-y-2">
-                <Label>Meio de Pagamento *</Label>
+                <Label className="font-bold text-slate-700 dark:text-slate-300">Tipo de Faturamento</Label>
                 <Controller
-                  name="paymentMethod"
+                  name="serviceType"
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger><SelectValue placeholder="Selecione o meio de pagamento" /></SelectTrigger>
+                      <SelectTrigger className="h-11 rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pix">Pix</SelectItem>
-                        <SelectItem value="Crédito">Cartão de Crédito</SelectItem>
-                        <SelectItem value="Débito">Cartão de Débito</SelectItem>
-                        <SelectItem value="Boleto">Boleto Bancário</SelectItem>
-                        <SelectItem value="Transferência">Transferência Bancária</SelectItem>
-                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="avulso">Avulso (Pagamento Único)</SelectItem>
+                        <SelectItem value="mensal">Mensal (Recorrência)</SelectItem>
+                        <SelectItem value="outros">Outros</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
               </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Data de Início</Label>
-                <Input type="date" {...register("startDate")} />
+                <Label className="font-bold text-slate-700 dark:text-slate-300">Status Atual</Label>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="h-11 rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(STATUS_CONFIG).map(([v, { label }]) => (
+                          <SelectItem key={v} value={v}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Data de Conclusão</Label>
-                <Input type="date" {...register("endDate")} />
+
+              <div className="flex flex-row items-center justify-between rounded-2xl border border-dashed border-border p-4 bg-white/50 dark:bg-slate-900/50">
+                <div className="space-y-0.5">
+                  <Label className="font-bold">Marcar como Pago?</Label>
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">Gera receita no financeiro automaticamente</p>
+                </div>
+                <Controller
+                  name="paymentReceived"
+                  control={control}
+                  render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
+                />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Observações</Label>
-              <Textarea placeholder="Notas adicionais..." {...register("notes")} />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Salvando..." : editingService ? "Atualizar" : "Criar"}
-              </Button>
-            </DialogFooter>
-          </form>
+
+              {isPaymentReceived && (
+                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                  <Label className="font-bold">Meio de Pagamento</Label>
+                  <Controller
+                    name="paymentMethod"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["Pix", "Cartão de Crédito", "Cartão de Débito", "Boleto", "Dinheiro"].map(m => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Data Início</Label>
+                  <Input type="date" className="h-11 rounded-xl" {...register("startDate")} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700 dark:text-slate-300">Entrega Prevista</Label>
+                  <Input type="date" className="h-11 rounded-xl" {...register("endDate")} />
+                </div>
+              </div>
+
+              <DialogFooter className="pt-4 gap-2">
+                <Button type="button" variant="ghost" className="rounded-xl font-bold" onClick={() => setIsDialogOpen(false)}>Descartar</Button>
+                <Button type="submit" className="rounded-xl font-bold px-8 h-11 shadow-lg shadow-primary/20" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  {editingService ? "Atualizar Serviço" : "Salvar Serviço"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Confirm Delete */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Remover Serviço</DialogTitle>
-            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader className="items-center text-center">
+            <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-4">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-xl font-black">Remover Serviço?</DialogTitle>
+            <DialogDescription className="font-medium">Esta ação é irreversível e removerá todos os dados vinculados.</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDelete}>Remover</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+            <Button variant="ghost" className="rounded-xl font-bold flex-1" onClick={() => setDeleteId(null)}>Manter</Button>
+            <Button variant="destructive" className="rounded-xl font-bold flex-1" onClick={handleDelete}>Confirmar Exclusão</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

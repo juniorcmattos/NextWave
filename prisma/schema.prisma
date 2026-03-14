@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
 }
 
@@ -9,106 +9,99 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  avatar    String?
-  role         String   @default("admin")
-  allowedIps   String?  // IPs permitidos (separados por vírgula ou "*" para todos)
-  workDayStart String?  // Formato HH:mm (ex: 08:00)
-  workDayEnd   String?  // Formato HH:mm (ex: 18:00)
-  twoFactorSecret   String?
-  twoFactorEnabled  Boolean  @default(false)
-  accentColor  String   @default("blue")
-  layoutTheme  String   @default("default")
-  currentSessionId String?  // ID da última sessão ativa (Single Device Access)
-  // Notificações
-  notifyEmail  Boolean  @default(true)
-  notifyPush   Boolean  @default(false)
-  notifyDue    Boolean  @default(true)
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  clients      Client[]
-  transactions Transaction[]
-  services     Service[]
-  events       Event[]
-  projects     Project[]
-  subscriptions Subscription[]
-  callLogs     CallLog[]
+  id               String         @id @default(cuid())
+  name             String
+  email            String         @unique
+  password         String
+  avatar           String?
+  role             String         @default("admin")
+  allowedIps       String?
+  workDayStart     String?
+  workDayEnd       String?
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean        @default(false)
+  accentColor      String         @default("blue")
+  layoutTheme      String         @default("default")
+  currentSessionId String?
+  notifyEmail      Boolean        @default(true)
+  notifyPush       Boolean        @default(false)
+  notifyDue        Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  callLogs         CallLog[]
+  clients          Client[]
+  events           Event[]
+  projects         Project[]
+  services         Service[]
+  subscriptions    Subscription[]
+  transactions     Transaction[]
 }
 
 model Client {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?
-  phone     String?
-  document  String?
-  company   String?
-  address   String?
-  city      String?
-  state     String?
-  zipCode   String?
-  notes     String?
-  status    String   @default("ativo")
-  registrationId Int?    @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId       String
-  user         User          @relation(fields: [userId], references: [id])
-  transactions Transaction[]
-  services     Service[]
-  subscriptions Subscription[]
-  callLogs      CallLog[]
+  id             String         @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  document       String?
+  company        String?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  notes          String?
+  status         String         @default("ativo")
+  registrationId Int?           @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  userId         String
+  callLogs       CallLog[]
+  user           User           @relation(fields: [userId], references: [id])
+  services       Service[]
+  subscriptions  Subscription[]
+  transactions   Transaction[]
 }
 
 model Transaction {
-  id          String    @id @default(cuid())
-  description String
-  amount      Float
-  type        String
-  category    String
-  status      String    @default("pendente")
-  dueDate     DateTime?
-  paidAt      DateTime?
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Gateway Fields (Scalable)
+  id              String    @id @default(cuid())
+  description     String
+  amount          Float
+  type            String
+  category        String
+  status          String    @default("pendente")
+  dueDate         DateTime?
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   gatewayProvider String?
   gatewayId       String?
   paymentUrl      String?
   paymentMethod   String?
-
-  userId   String
-  user     User    @relation(fields: [userId], references: [id])
-  clientId String?
-  client   Client? @relation(fields: [clientId], references: [id])
-  serviceId String?
-  service   Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  userId          String
+  clientId        String?
+  serviceId       String?
+  service         Service?  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  client          Client?   @relation(fields: [clientId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
 }
 
 model Service {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  amount      Float
-  status      String    @default("rascunho")
-  category    String?
-  startDate   DateTime?
-  endDate     DateTime?
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  userId   String
-  user     User    @relation(fields: [userId], references: [id])
-  clientId String?
-  client   Client? @relation(fields: [clientId], references: [id])
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  amount       Float
+  status       String        @default("rascunho")
+  category     String?
+  startDate    DateTime?
+  endDate      DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String
+  clientId     String?
+  client       Client?       @relation(fields: [clientId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  serviceType  String?       @default("avulso") // mensal, avulso, outros
   transactions Transaction[]
 }
 
@@ -125,21 +118,19 @@ model Event {
   clientId    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
   description String?
-  color       String?  @default("#3b82f6")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  color       String?      @default("#3b82f6")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   columns     TaskColumn[]
 }
 
@@ -149,30 +140,28 @@ model TaskColumn {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks     Task[]
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String?
-  priority    String    @default("media") // baixa, media, alta
-  scope       String    @default("empresa") // empresa, pessoal
-  order       Int       @default(0)
+  priority    String     @default("media")
+  scope       String     @default("empresa")
+  order       Int        @default(0)
   dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   columnId    String
   column      TaskColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
 }
 
 model SystemModule {
   id          String   @id @default(cuid())
-  key         String   @unique // ex: 'financeiro', 'whatsapp', 'projetos'
+  key         String   @unique
   name        String
   description String?
   enabled     Boolean  @default(true)
@@ -180,203 +169,201 @@ model SystemModule {
 }
 
 model WhatsAppFlow {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   name        String
   description String?
-  isActive    Boolean  @default(false)
-  nodes       WhatsAppNode[]
+  isActive    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   edges       WhatsAppEdge[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  nodes       WhatsAppNode[]
 }
 
 model WhatsAppNode {
-  id          String       @id @default(cuid())
-  type        String       // message, menu, input, condition
-  data        String       // JSON com conteúdo do nó (texto, opções, etc)
-  positionX   Float
-  positionY   Float
-  flowId      String
-  flow        WhatsAppFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  id        String       @id @default(cuid())
+  type      String
+  data      String
+  positionX Float
+  positionY Float
+  flowId    String
+  flow      WhatsAppFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
 }
 
 model WhatsAppEdge {
-  id          String       @id @default(cuid())
-  source      String
-  target      String
+  id           String       @id @default(cuid())
+  source       String
+  target       String
   sourceHandle String?
-  flowId      String
-  flow        WhatsAppFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  flowId       String
+  flow         WhatsAppFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
 }
 
 model WhatsAppConfig {
-  id             String   @id @default("default")
-  apiUrl         String?  @default("")
-  globalApiKey   String?  @default("")
-  instanceName   String?  @default("")
-  token          String?  @default("")
-  waVersion      String?  @default("")
-  isActive       Boolean  @default(false)
-  updatedAt      DateTime @updatedAt
+  id           String   @id @default("default")
+  apiUrl       String?  @default("")
+  globalApiKey String?  @default("")
+  instanceName String?  @default("")
+  token        String?  @default("")
+  waVersion    String?  @default("")
+  isActive     Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
 }
 
 model WhatsAppChannel {
-  id          String   @id @default(cuid())
-  name        String   // Ex: 'Suporte Comercial', 'Financeiro'
-  instanceName String   // Nome da instância na API (Evolution/WPP)
-  apiUrl      String?
-  apiKey      String?
-  webhookUrl  String?
-  status      String   @default("disconnected") // connected, disconnected, connecting
-  isActive    Boolean  @default(true)
-  updatedAt   DateTime @updatedAt
-  
+  id           String                @id @default(cuid())
+  name         String
+  instanceName String
+  apiUrl       String?
+  apiKey       String?
+  webhookUrl   String?
+  status       String                @default("disconnected")
+  isActive     Boolean               @default(true)
+  updatedAt    DateTime              @updatedAt
   interactions WhatsAppInteraction[]
 }
 
 model WhatsAppInteraction {
-  id          String   @id @default(cuid())
-  phone       String   @unique
-  customerName String?
-  lastFlowId  String?
+  id            String            @id @default(cuid())
+  phone         String            @unique
+  customerName  String?
+  lastFlowId    String?
   currentNodeId String?
-  state       String?  // JSON com variáveis capturadas
-  lastMessageAt DateTime @default(now())
-  status      String   @default("ativo") // ativo, finalizado
-  
-  channelId   String
-  channel     WhatsAppChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  messages    WhatsAppMessage[]
+  state         String?
+  lastMessageAt DateTime          @default(now())
+  status        String            @default("ativo")
+  channelId     String
+  channel       WhatsAppChannel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  messages      WhatsAppMessage[]
 }
 
 model WhatsAppMessage {
-  id            String   @id @default(cuid())
-  fromMe        Boolean  @default(false)
+  id            String              @id @default(cuid())
+  fromMe        Boolean             @default(false)
   body          String
-  type          String   @default("chat") // chat, image, audio, video
-  timestamp     DateTime @default(now())
-  
+  type          String              @default("chat")
+  timestamp     DateTime            @default(now())
   interactionId String
   interaction   WhatsAppInteraction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
 }
 
 model SmtpConfig {
-  id          String   @id @default(cuid())
-  name        String   // Ex: 'Suporte', 'Financeiro'
-  host        String
-  port        Int
-  user        String
-  pass        String
-  fromEmail   String
-  fromName    String?
-  secure      Boolean  @default(true)
-  isActive    Boolean  @default(true)
-  isDefault   Boolean  @default(false)
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  host      String
+  port      Int
+  user      String
+  pass      String
+  fromEmail String
+  fromName  String?
+  secure    Boolean  @default(true)
+  isActive  Boolean  @default(true)
+  isDefault Boolean  @default(false)
+  updatedAt DateTime @updatedAt
 }
 
 model CommunicationTemplate {
   id        String   @id @default(cuid())
-  name      String   // ex: 'Cobranca Atrasada'
-  type      String   // 'whatsapp' ou 'email'
-  content   String   // Corpo da mensagem (aceita variáveis {nome}, {valor})
-  subject   String?  // Apenas para e-mail
+  name      String
+  type      String
+  content   String
+  subject   String?
   createdAt DateTime @default(now())
 }
 
 model ScheduledTask {
-  id          String   @id @default(cuid())
-  name        String   // Ex: 'Backup Diário', 'Cobrança WhatsApp'
-  type        String   // 'email_blast', 'whatsapp_billing', 'backup', 'wa_check'
-  cron        String   // Expressão cron ou formato simplificado '0 3 * * *'
-  lastRun     DateTime?
-  nextRun     DateTime?
-  status      String   @default("active") // 'active', 'disabled', 'failed'
-  config      String?  // JSON string com configurações extras
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String    @id @default(cuid())
+  name      String
+  type      String
+  cron      String
+  lastRun   DateTime?
+  nextRun   DateTime?
+  status    String    @default("active")
+  config    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
+
 model Subscription {
   id              String   @id @default(cuid())
-  description     String   // Ex: 'Plano Mensal Gold'
+  description     String
   amount          Float
-  interval        String   @default("monthly") // monthly, yearly
-  status          String   @default("active") // active, canceled, past_due
+  interval        String   @default("monthly")
+  status          String   @default("active")
   nextBillingDate DateTime
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
-  clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  userId          String
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
 }
 
 model NfeConfig {
-  id                String   @id @default("default")
-  cnpj              String
+  id                 String   @id @default("default")
+  cnpj               String
   inscricaoMunicipal String
-  razaoSocial       String
-  senhaCertificado  String?  // Criptografado
-  certificadoBase64 String?  // Arquivo PFX em Base64 criptografado
-  ambiente          String   @default("homologacao") // homologacao, producao
-  updatedAt         DateTime @updatedAt
+  razaoSocial        String
+  senhaCertificado   String?
+  certificadoBase64  String?
+  ambiente           String   @default("homologacao")
+  updatedAt          DateTime @updatedAt
 }
+
 model SystemLicense {
-  id          String   @id @default("default")
-  key         String?  @unique
-  status      String   @default("active") // active, suspended, expired, trial
-  validUntil  DateTime?
-  lastCheck   DateTime @default(now())
+  id           String    @id @default("default")
+  key          String?   @unique
+  status       String    @default("active")
+  validUntil   DateTime?
+  lastCheck    DateTime  @default(now())
   customerName String?
-  updatedAt   DateTime @updatedAt
+  updatedAt    DateTime  @updatedAt
 }
 
 model SystemBranding {
-  id          String   @id @default("default")
-  name        String   @default("NextWave CRM")
-  logoUrl     String?
-  faviconUrl  String?
-  primaryColor String  @default("#3b82f6")
+  id           String   @id @default("default")
+  name         String   @default("NextWave CRM")
+  logoUrl      String?
+  faviconUrl   String?
+  primaryColor String   @default("#3b82f6")
   supportEmail String?
   supportPhone String?
-  updatedAt   DateTime @updatedAt
+  updatedAt    DateTime @updatedAt
 }
-model CallLog {
-  id            String   @id @default(cuid())
-  direction     String   // incoming, outgoing
-  from          String
-  to            String
-  duration      Int      @default(0) // seconds
-  status        String   @default("completed") // completed, missed, busy, failed
-  recordingUrl  String?
-  notes         String?
-  timestamp     DateTime @default(now())
 
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  clientId      String?
-  client        Client?  @relation(fields: [clientId], references: [id])
+model CallLog {
+  id           String   @id @default(cuid())
+  direction    String
+  from         String
+  to           String
+  duration     Int      @default(0)
+  status       String   @default("completed")
+  recordingUrl String?
+  notes        String?
+  timestamp    DateTime @default(now())
+  userId       String
+  clientId     String?
+  client       Client?  @relation(fields: [clientId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model PbxConfig {
-  id            String   @id @default("default")
-  provider      String   @default("simulator") // twilio, sip, simulator
-  apiKey        String?
-  apiSecret     String?
-  accountSid    String?
-  sipDomain     String?
-  sipUser       String?
-  sipPassword   String?
-  isActive      Boolean  @default(false)
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default("default")
+  provider    String   @default("simulator")
+  apiKey      String?
+  apiSecret   String?
+  accountSid  String?
+  sipDomain   String?
+  sipUser     String?
+  sipPassword String?
+  isActive    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
 }
 
 model PaymentGatewayConfig {
   id          String   @id @default(cuid())
-  name        String   // Ex: "InfinitePay", "Mercado Pago"
-  provider    String   @unique // Ex: "infinitepay", "mercadopago"
-  credentials String   // JSON string with API keys, tags, etc.
+  name        String
+  provider    String   @unique
+  credentials String
   isActive    Boolean  @default(false)
   updatedAt   DateTime @updatedAt
 }
