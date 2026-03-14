@@ -1,6 +1,7 @@
 # dependencies
 /node_modules
-/.pnp
+.next
+.next_docker
 .pnp.js
 
 # testing
