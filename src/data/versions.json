@@ -1,5 +1,52 @@
 [
   {
+    "version": "1.8.8",
+    "date": "2026-03-14",
+    "title": "Arquitetura Isolada de Build",
+    "description": "Correção definitiva do erro 'Production build missing' através do isolamento do diretório de build (.next_docker) no Docker Desktop.",
+    "type": "bugfix",
+    "changes": [
+      "Fix: Mapeamento de .next_docker para evitar conflitos com pastas vazias do Windows",
+      "Fix: Atualização do docker-compose para proteção de volumes anônimos",
+      "Improvement: Estabilidade do startup do container"
+    ]
+  },
+  {
+    "version": "1.8.7",
+    "date": "2026-03-14",
+    "title": "Trava de Segurança & Seleção de Versão",
+    "description": "Implementação de trava contra atualizações simultâneas e suporte à restauração de versões anteriores.",
+    "type": "feature",
+    "changes": [
+      "Add: Lock de sistema (/tmp/nextwave_update.lock) contra build concorrente",
+      "Add: Botão de 'Restaurar' em cada versão da timeline para rollback fácil",
+      "Add: Comando git checkout integrado à interface"
+    ]
+  },
+  {
+    "version": "1.8.6",
+    "date": "2026-03-14",
+    "title": "Tradução & Experiência do Usuário",
+    "description": "Melhorias no console do Web Updater e facilitação do processo de atualização.",
+    "type": "feature",
+    "changes": [
+      "Add: Botão de 'Atualização Completa' (Pull + Install + Build em um clique)",
+      "Improvement: Tradução das saídas do Git e NPM para Português no console",
+      "UI: Novo layout da Central de Comando com ações simplificadas"
+    ]
+  },
+  {
+    "version": "1.8.5",
+    "date": "2026-03-14",
+    "title": "Teste de Web Updater",
+    "description": "Versão de teste para validação do fluxo completo de atualização via interface.",
+    "type": "feature",
+    "changes": [
+      "Verify: Teste de pull bem-sucedido após correção de Git Ownership",
+      "Test: Sincronização entre repositório remoto e container local"
+    ]
+  },
+  {
     "version": "1.8.4",
     "date": "2026-03-14",
     "title": "Fix: Controle de Ownership Git no Docker",
