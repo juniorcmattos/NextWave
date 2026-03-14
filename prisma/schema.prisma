@@ -200,11 +200,13 @@ model WhatsAppEdge {
 }
 
 model WhatsAppConfig {
-  id          String   @id @default("default")
-  apiUrl      String?
-  apiKey      String?
-  waVersion   String?  // Versão do WhatsApp Web (ex: 2.3000.x)
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default("default")
+  apiUrl         String?  @default("")
+  globalApiKey   String?  @default("")
+  instanceName   String?  @default("")
+  token          String?  @default("")
+  isActive       Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
 }
 
 model WhatsAppChannel {
@@ -369,14 +371,14 @@ model PaymentGatewayConfig {
 }
 
 model McpConfig {
-  id              String   @id @default("default")
-  apiKey          String?
-  allowedIps      String   @default("127.0.0.1")
-  allowedOrigins  String   @default("*")
-  rateLimit       Int      @default(100)
-  rateWindow      Int      @default(60)
-  logLevel        String   @default("info")
-  port            Int      @default(3001)
-  isActive        Boolean  @default(false)
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default("default")
+  apiKey         String
+  allowedIps     String?  @default("[]")
+  allowedOrigins String?  @default("[]")
+  rateLimit      Int      @default(100)
+  rateWindow     Int      @default(60000)
+  logLevel       String   @default("info")
+  port           Int      @default(3001)
+  isActive       Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
 }

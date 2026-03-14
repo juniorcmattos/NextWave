@@ -1,0 +1,42 @@
+[
+  {
+    "version": "1.6.5",
+    "date": "2026-03-14",
+    "title": "Módulos & Segurança",
+    "description": "Integração com Evolution API, campos obrigatórios no cadastro de clientes com feedback visual e vinculação de serviços aos perfis de clientes.",
+    "type": "feature",
+    "changes": [
+      "Novo módulo WhatsApp API (Evolution)",
+      "Validação obrigatória de CNPJ, CEP e Endereço",
+      "Bordas vermelhas em campos vazios no cadastro",
+      "Vínculo de Serviços com Clientes",
+      "Limpeza de dados de demonstração (Dashboard/WhatsApp)"
+    ]
+  },
+  {
+    "version": "1.6.4",
+    "date": "2026-03-12",
+    "title": "Estabilidade do Fluxo",
+    "description": "Correções no botão de notificações, ajustes no quadro Kanban e melhorias no script de deploy Docker.",
+    "type": "bugfix",
+    "changes": [
+      "Fix: Botão de notificação",
+      "Ajustes no drag-and-drop do Kanban",
+      "Refatoração do script deploy.sh",
+      "Adicionado script de reset de banco de dados"
+    ]
+  },
+  {
+    "version": "1.6.0",
+    "date": "2026-03-01",
+    "title": "Lançamento Base",
+    "description": "Estrutura inicial do CRM com Dashboard, Gestão de Clientes e Financeiro.",
+    "type": "feature",
+    "changes": [
+      "Módulo de Autenticação com 2FA",
+      "Gestão de Clientes e Financeiro",
+      "Dashboard com KPIs em tempo real",
+      "Sistema de Temas (Claro/Escuro)"
+    ]
+  }
+]

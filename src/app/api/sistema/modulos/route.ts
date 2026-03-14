@@ -20,9 +20,9 @@ export async function GET() {
                 { key: 'financeiro', name: 'Financeiro', enabled: true },
                 { key: 'projetos', name: 'Projetos', enabled: true },
                 { key: 'servicos', name: 'Serviços', enabled: true },
-                { key: 'agenda', name: 'Agenda', enabled: true },
+                { key: 'whatsapp', name: 'WhatsApp API', enabled: true },
+                { key: 'pbx', name: 'Telefonia PBX', enabled: false },
                 { key: 'usuarios', name: 'Usuários', enabled: true },
-                { key: 'whatsapp', name: 'WhatsApp', enabled: true },
                 { key: 'evolution', name: 'Evolution API', enabled: false },
                 { key: 'mcp', name: 'MCP Server', description: 'Integração com agentes de IA via Model Context Protocol', enabled: false },
             ];

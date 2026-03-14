@@ -6,7 +6,7 @@ import {
     DollarSign, Clock, FileText, Plus, ExternalLink,
     Filter, Download, ChevronRight, Receipt, CreditCard,
     TrendingUp, TrendingDown, Edit, Trash2, MessageSquare,
-    QrCode, Loader2, Save
+    QrCode, Loader2, Save, Briefcase
 } from "lucide-react";
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
@@ -438,14 +438,45 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
                                         )}
                                     </TabsContent>
 
-                                    {/* ── Serviços Tab ── */}
-                                    <TabsContent value="servicos" className="mt-0">
-                                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                                            <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center">
-                                                <FileText className="h-8 w-8 text-muted-foreground/40" />
-                                            </div>
-                                            <p className="text-sm text-muted-foreground font-medium">Módulo de projetos em desenvolvimento.</p>
+                                    <TabsContent value="servicos" className="mt-0 space-y-4 pr-1">
+                                        <div className="flex justify-end mb-2">
+                                            <Button size="sm" className="rounded-xl bg-blue-600 hover:bg-blue-700" onClick={() => window.location.href = '/servicos'}>
+                                                <Plus className="h-4 w-4 mr-1" /> Novo Serviço
+                                            </Button>
                                         </div>
+                                        {client?.services?.length > 0 ? (
+                                            client.services.map((svc: any) => (
+                                                <div key={svc.id} className="group flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-border/50 hover:border-blue-500/30 hover:shadow-xl transition-all duration-300">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                                            <Briefcase className="h-6 w-6" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{svc.title}</p>
+                                                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
+                                                                <Badge variant="outline" className="text-[9px] uppercase">{svc.status}</Badge>
+                                                                <span className="h-1 w-1 rounded-full bg-slate-300" />
+                                                                <span className="font-bold text-slate-500 uppercase">{svc.category || "Sem categoria"}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-lg font-black text-blue-600">{formatCurrency(svc.amount)}</p>
+                                                        {svc.endDate && <p className="text-[9px] text-muted-foreground italic">Entrega: {formatDate(svc.endDate)}</p>}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                                                <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center">
+                                                    <Briefcase className="h-8 w-8 text-muted-foreground/40" />
+                                                </div>
+                                                <p className="text-sm text-muted-foreground font-medium">Nenhum serviço vinculado a este cliente.</p>
+                                                <Button variant="outline" size="sm" className="rounded-full px-8" onClick={() => window.location.href = '/servicos'}>
+                                                    <Plus className="h-4 w-4 mr-2" /> Vincular Serviço
+                                                </Button>
+                                            </div>
+                                        )}
                                     </TabsContent>
                                 </ScrollArea>
                             </Tabs>

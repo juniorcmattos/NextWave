@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone, DollarSign, CreditCard, Server } from "lucide-react";
+import { Moon, Sun, Monitor, User, Bell, Shield, Palette, Puzzle, Mail, Phone, DollarSign, CreditCard, Server, MessageSquare, History as HistoryIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -230,6 +230,21 @@ export default function ConfiguracoesPage() {
             </Card>
           </Link>
 
+          {/* WhatsApp API */}
+          <Link href="/configuracoes/whatsapp">
+            <Card className="hover:border-primary/50 transition-colors group">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <MessageSquare className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">WhatsApp API</CardTitle>
+                  <CardDescription>Configure a Evolution API para automações e chat em tempo real.</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+
           <Link href="/configuracoes/mcp">
             <Card className="hover:border-primary/50 transition-colors group">
               <CardHeader className="flex flex-row items-center gap-4">
@@ -239,6 +254,20 @@ export default function ConfiguracoesPage() {
                 <div>
                   <CardTitle className="text-lg">MCP Server</CardTitle>
                   <CardDescription>Integre com agentes de IA via Model Context Protocol.</CardDescription>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/configuracoes/atualizacoes">
+            <Card className="hover:border-primary/50 transition-colors group">
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                  <HistoryIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Versões & Atualizações</CardTitle>
+                  <CardDescription>Veja o histórico e instale novas atualizações via web.</CardDescription>
                 </div>
               </CardHeader>
             </Card>

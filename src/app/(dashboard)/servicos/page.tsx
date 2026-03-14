@@ -27,6 +27,7 @@ const serviceSchema = z.object({
   category: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  clientId: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -52,6 +53,13 @@ export default function ServicosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [clientes, setClientes] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/clientes?limit=100")
+      .then(res => res.json())
+      .then(data => setClientes(data.clientes || []));
+  }, []);
 
   const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm<ServiceForm>({
     resolver: zodResolver(serviceSchema),
@@ -95,6 +103,7 @@ export default function ServicosPage() {
       category: service.category ?? "",
       startDate: service.startDate ? new Date(service.startDate).toISOString().split("T")[0] : "",
       endDate: service.endDate ? new Date(service.endDate).toISOString().split("T")[0] : "",
+      clientId: service.clientId ?? "",
       notes: service.notes ?? "",
     });
     setIsDialogOpen(true);
@@ -278,6 +287,22 @@ export default function ServicosPage() {
             <div className="space-y-2">
               <Label>Descrição</Label>
               <Textarea placeholder="Descrição detalhada do serviço..." {...register("description")} />
+            </div>
+            <div className="space-y-2">
+              <Label>Cliente</Label>
+              <Controller
+                name="clientId"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue placeholder="Vincular a um cliente (Opcional)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      {clientes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

@@ -17,7 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Client } from "@/types";
-import { formatDate, getInitials, getStatusLabel } from "@/lib/utils";
+import { formatDate, getInitials, getStatusLabel, cn } from "@/lib/utils";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,10 +30,10 @@ const clienteSchema = z.object({
   phones: z.array(z.object({ value: z.string().min(1, "Mínimo 1 telefone") })).min(1, "Adicione pelo menos um telefone"),
   document: z.string().min(1, "CPF/CNPJ obrigatório"),
   company: z.string().optional(),
-  zipCode: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
+  zipCode: z.string().min(8, "CEP obrigatório"),
+  address: z.string().min(5, "Endereço obrigatório"),
+  city: z.string().min(2, "Cidade obrigatória"),
+  state: z.string().min(2, "UF obrigatória"),
   notes: z.string().optional(),
   status: z.enum(["ativo", "inativo", "prospecto"]).default("ativo"),
 });
@@ -411,7 +411,7 @@ export default function ClientesPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label>CPF/CNPJ</Label>
+                <Label className={errors.document ? "text-destructive" : ""}>CPF/CNPJ *</Label>
                 <Controller
                   name="document"
                   control={control}
@@ -421,45 +421,69 @@ export default function ClientesPage() {
                         { mask: '000.000.000-00' },
                         { mask: '00.000.000/0000-00' }
                       ]}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={cn(
+                        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        errors.document && "border-destructive ring-destructive"
+                      )}
                       placeholder="000.000.000-00"
                       value={field.value}
                       onAccept={(value: string) => field.onChange(value)}
                     />
                   )}
                 />
+                {errors.document && <p className="text-[10px] text-destructive italic">{errors.document.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>CEP</Label>
+                <Label className={errors.zipCode ? "text-destructive" : ""}>CEP *</Label>
                 <Controller
                   name="zipCode"
                   control={control}
                   render={({ field }) => (
                     <IMaskInput
                       mask="00000-000"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={cn(
+                        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        errors.zipCode && "border-destructive ring-destructive"
+                      )}
                       placeholder="00000-000"
                       value={field.value}
                       onAccept={(value: string) => field.onChange(value)}
                     />
                   )}
                 />
+                {errors.zipCode && <p className="text-[10px] text-destructive italic">{errors.zipCode.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Empresa</Label>
                 <Input placeholder="Nome da empresa" {...register("company")} />
               </div>
               <div className="col-span-2 space-y-2">
-                <Label>Endereço</Label>
-                <Input placeholder="Rua, número, bairro" {...register("address")} />
+                <Label className={errors.address ? "text-destructive" : ""}>Endereço *</Label>
+                <Input 
+                  placeholder="Rua, número, bairro" 
+                  {...register("address")} 
+                  className={cn(errors.address && "border-destructive ring-destructive")}
+                />
+                {errors.address && <p className="text-[10px] text-destructive italic">{errors.address.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Cidade</Label>
-                <Input placeholder="São Paulo" {...register("city")} />
+                <Label className={errors.city ? "text-destructive" : ""}>Cidade *</Label>
+                <Input 
+                  placeholder="São Paulo" 
+                  {...register("city")} 
+                  className={cn(errors.city && "border-destructive ring-destructive")}
+                />
+                {errors.city && <p className="text-[10px] text-destructive italic">{errors.city.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Estado</Label>
-                <Input placeholder="SP" maxLength={2} {...register("state")} />
+                <Label className={errors.state ? "text-destructive" : ""}>Estado *</Label>
+                <Input 
+                  placeholder="SP" 
+                  maxLength={2} 
+                  {...register("state")} 
+                  className={cn(errors.state && "border-destructive ring-destructive")}
+                />
+                {errors.state && <p className="text-[10px] text-destructive italic">{errors.state.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
