@@ -5,10 +5,10 @@ import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
 
 const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos em ms
-const CHECK_INTERVAL = 10 * 1000; // Verificar a cada 10 segundos
+const CHECK_INTERVAL = 3 * 1000; // Verificar a cada 3 segundos para logout ultra-rápido
 
 export function SessionSecurityProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const lastActivityRef = useRef<number>(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,14 +39,17 @@ export function SessionSecurityProvider({ children }: { children: React.ReactNod
         return;
       }
 
-      // 2. Verificar se o servidor marcou a sessão como inválida (Single Device Access)
-      // Se o ID for "INVALID", significa que o callback de sessão no backend detectou outro login
+      // 2. Forçar atualização silenciosa da sessão no NextAuth para verificar no Back-End
+      update().catch(() => {});
+
+      // 3. Verificar se o servidor marcou a sessão como inválida (Single Device Access)
       if (session?.user?.id === "INVALID") {
         clearInterval(timerRef.current!);
-        handleLogout("Sua conta foi acessada em outro dispositivo.");
+        handleLogout("Sua conta foi logada em outro dispositivo.");
         return;
       }
     }, CHECK_INTERVAL);
+
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, resetTimer));
