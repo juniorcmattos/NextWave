@@ -28,10 +28,6 @@ npm run dev
 
 Acesse: http://localhost:3000
 
-**Login de acesso:**
-- Email: admin@nextwave.com
-- Senha: admin123
-
 ## Tecnologias
 
 - **Framework:** Next.js 14 (App Router)
