@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Users, DollarSign, Briefcase,
+  LayoutDashboard, Users, Briefcase,
   BarChart3, Calendar, Settings, ChevronLeft, ChevronRight, ChevronDown,
   Zap, Database, MessageSquare, Paintbrush, Clock, PieChart, Phone
 } from "lucide-react";
@@ -31,12 +31,15 @@ type NavItem = {
   subItems?: SubItem[];
 };
 
+const clientesSubItems: SubItem[] = [
+  { href: "/financeiro", label: "Financeiro", module: "financeiro" },
+];
+
 const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, subItems: dashboardSubItems },
-  { href: "/clientes", label: "Clientes", icon: Users, module: "clientes" },
+  { href: "/clientes", label: "Clientes", icon: Users, module: "clientes", subItems: clientesSubItems },
   { href: "/usuarios", label: "Usuários", icon: Users },
   { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
-  { href: "/financeiro", label: "Financeiro", icon: DollarSign, module: "financeiro" },
   { href: "/servicos", label: "Serviços", icon: Briefcase, module: "servicos" },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/agenda", label: "Agenda", icon: Calendar, module: "agenda" },
@@ -61,12 +64,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { layoutTheme } = useColorTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [activeModules, setActiveModules] = useState<string[]>([]);
-  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   const isProfessional = layoutTheme === "professional";
 
   useEffect(() => {
-    if (pathname.startsWith("/dashboard/")) setDashboardOpen(true);
+    if (pathname.startsWith("/dashboard/")) setOpenMenus(prev => ({ ...prev, "/": true }));
+    if (pathname.startsWith("/financeiro")) setOpenMenus(prev => ({ ...prev, "/clientes": true }));
   }, [pathname]);
 
   useEffect(() => {
@@ -88,6 +92,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("sidebar-collapsed", String(next));
+  };
+
+  const toggleMenu = (href: string) => {
+    setOpenMenus(prev => ({ ...prev, [href]: !prev[href] }));
   };
 
   const moduleMapping: Record<string, string> = {
@@ -169,15 +177,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </Link>
             {subs.length > 0 && (
               <button
-                onClick={() => setDashboardOpen(o => !o)}
+                onClick={() => toggleMenu(item.href)}
                 className="h-9 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0"
               >
-                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", dashboardOpen && "rotate-180")} />
+                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", openMenus[item.href] && "rotate-180")} />
               </button>
             )}
           </div>
 
-          {dashboardOpen && subs.length > 0 && (
+          {openMenus[item.href] && subs.length > 0 && (
             <div className="ml-3 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-border/60 pl-3">
               {subs.map(sub => {
                 const isSubActive = pathname.startsWith(sub.href);

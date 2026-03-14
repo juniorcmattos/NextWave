@@ -3,9 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app/mcp-server
 
-# Copia dependências
+# Copia dependências — inclui devDependencies para ter o TypeScript
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Copia o schema Prisma do projeto pai
 COPY ../prisma/schema.prisma /app/prisma/schema.prisma
@@ -23,13 +23,17 @@ FROM node:20-alpine AS production
 
 WORKDIR /app/mcp-server
 
-# Copia node_modules e build
-COPY --from=builder /app/mcp-server/node_modules ./node_modules
+# Reinstala somente dependências de produção
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+# Copia build compilado
 COPY --from=builder /app/mcp-server/dist ./dist
-COPY --from=builder /app/mcp-server/package.json ./
 
 # Copia Prisma Client gerado
 COPY --from=builder /app/prisma /app/prisma
+COPY --from=builder /app/mcp-server/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/mcp-server/node_modules/@prisma ./node_modules/@prisma
 
 # Segurança: Roda como usuário não-root
 RUN addgroup -g 1001 -S mcpuser && \
