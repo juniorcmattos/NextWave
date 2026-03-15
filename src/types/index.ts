@@ -73,6 +73,7 @@ export interface Event {
   type: string;
   status: string;
   location?: string | null;
+  googleEventId?: string | null;
   clientId?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;

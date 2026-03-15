@@ -152,10 +152,16 @@ export default function AgendaPage() {
           <h1 className="text-2xl font-bold">Agenda</h1>
           <p className="text-muted-foreground mt-1">{events.length} evento{events.length !== 1 ? "s" : ""} este mês</p>
         </div>
-        <Button onClick={() => openCreate()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Evento
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => window.location.href = "/api/auth/google"}>
+            <Users className="h-4 w-4 mr-2" />
+            Conectar Google
+          </Button>
+          <Button onClick={() => openCreate()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Evento
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

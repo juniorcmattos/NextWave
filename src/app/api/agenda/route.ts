@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { pushEventToGoogle } from "@/lib/google-calendar";
 
 const eventSchema = z.object({
   title: z.string().min(2, "Título obrigatório"),
@@ -60,6 +61,27 @@ export async function POST(request: Request) {
         clientId: data.clientId || undefined,
       },
     });
+
+    // Sincronizar com Google Calendar se o usuário estiver conectado
+    try {
+      const googleEventId = await pushEventToGoogle(session.user.id, {
+        title: event.title,
+        description: event.description || undefined,
+        startDate: event.startDate,
+        endDate: event.endDate || undefined,
+        location: event.location || undefined,
+      });
+
+      if (googleEventId) {
+        await prisma.event.update({
+          where: { id: event.id },
+          data: { googleEventId },
+        });
+      }
+    } catch (error) {
+      console.error("[GOOGLE_SYNC_POST_ERROR]", error);
+      // Não falha a requisição se o sync falhar
+    }
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
