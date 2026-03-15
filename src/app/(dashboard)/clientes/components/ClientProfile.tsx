@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { formatDate, getInitials, cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ClientDashboardTabs } from "./ClientDashboardTabs";
@@ -32,6 +33,7 @@ interface ClientProfileProps {
     clientId: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onEdit?: (client: any) => void;
 }
 
 const CATEGORIAS_RECEITA = ["Desenvolvimento", "Consultoria", "Manutenção", "Design", "Marketing", "Suporte", "Outros"];
@@ -41,7 +43,7 @@ function formatCurrency(value: number) {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
-export function ClientProfile({ clientId, open, onOpenChange }: ClientProfileProps) {
+export function ClientProfile({ clientId, open, onOpenChange, onEdit }: ClientProfileProps) {
     const [client, setClient] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -69,8 +71,10 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
         amount: "",
         category: "Desenvolvimento",
         status: "rascunho",
-        startDate: "",
-        endDate: "",
+        dueDate: "",
+        billingFrequency: "avulso",
+        paymentReceived: false,
+        paymentMethod: "Pix",
         notes: "",
     });
 
@@ -107,12 +111,9 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
         .reduce((s: number, t: any) => s + t.amount, 0);
 
     const openCreateTx = (defaultType: "receita" | "despesa" = "receita") => {
-        setEditingTx(null);
-        setTxForm({
-            description: "", amount: "", type: defaultType, category: "",
-            status: "pendente", dueDate: "", notes: "",
-        });
-        setTxDialogOpen(true);
+        toast.info("As transações devem ser geradas através do menu de Serviços para manter a consistência financeira.");
+        // Mantendo a função mas bloqueando ou avisando conforme solicitado
+        return;
     };
 
     const openEditTx = (tx: any) => {
@@ -174,14 +175,15 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
     const openCreateSvc = () => {
         setSvcForm({
             title: "", description: "", amount: "", category: "Desenvolvimento",
-            status: "rascunho", startDate: "", endDate: "", notes: "",
+            status: "rascunho", dueDate: "", billingFrequency: "avulso",
+            paymentReceived: false, paymentMethod: "Pix", notes: "",
         });
         setSvcDialogOpen(true);
     };
 
     const saveSvc = async () => {
-        if (!svcForm.title || !svcForm.amount) {
-            toast.error("Preencha os campos obrigatórios");
+        if (!svcForm.title || !svcForm.amount || !svcForm.dueDate) {
+            toast.error("Preencha os campos obrigatórios (incluindo vencimento)");
             return;
         }
         setSvcSaving(true);
@@ -196,7 +198,7 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
                 }),
             });
             if (!res.ok) throw new Error();
-            toast.success("Serviço vinculado com sucesso!");
+            toast.success("Serviço e faturamento gerados com sucesso!");
             setSvcDialogOpen(false);
             fetchClientDetails();
         } catch {
@@ -229,7 +231,17 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
                                 </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
-                                <h2 className="text-3xl font-extrabold tracking-tight">{client?.name}</h2>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-3xl font-extrabold tracking-tight">{client?.name}</h2>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 rounded-full" 
+                                        onClick={() => onEdit?.(client)}
+                                    >
+                                        <Edit className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                </div>
                                 <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium uppercase tracking-wider">
                                     <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {client?.company || "Pessoa Física"}</span>
                                     <span className="h-1 w-1 rounded-full bg-slate-400" />
@@ -249,7 +261,7 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
                             <div className="p-8">
                                 <ClientDashboardTabs
                                     client={client}
-                                    renderCadastro={() => <ClientCadastroTab client={client} />}
+                                    renderCadastro={() => <ClientCadastroTab client={client} onEdit={() => onEdit?.(client)} />}
                                     renderServicos={() => (
                                         <ClientServicosTab
                                             services={client?.services || []}
@@ -396,14 +408,44 @@ export function ClientProfile({ clientId, open, onOpenChange }: ClientProfilePro
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label>Data de Início</Label>
-                                <Input type="date" value={svcForm.startDate} onChange={(e) => setSvcForm({ ...svcForm, startDate: e.target.value })} />
+                                <Label>Periodicidade</Label>
+                                <Select value={svcForm.billingFrequency} onValueChange={(v) => setSvcForm({ ...svcForm, billingFrequency: v })}>
+                                    <SelectTrigger className="font-bold"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="avulso">Avulso (Único)</SelectItem>
+                                        <SelectItem value="semanal">Semanal</SelectItem>
+                                        <SelectItem value="mensal">Mensal</SelectItem>
+                                        <SelectItem value="trimestral">Trimestral</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>Previsão de Entrega</Label>
-                                <Input type="date" value={svcForm.endDate} onChange={(e) => setSvcForm({ ...svcForm, endDate: e.target.value })} />
+                                <Label>Vencimento *</Label>
+                                <Input type="date" value={svcForm.dueDate} onChange={(e) => setSvcForm({ ...svcForm, dueDate: e.target.value })} />
                             </div>
                         </div>
+
+                        <div className="flex flex-row items-center justify-between rounded-xl border border-dashed p-3 bg-slate-50 dark:bg-slate-900/50">
+                            <div className="space-y-0.5">
+                                <Label className="text-sm font-bold">Marcar como Pago?</Label>
+                                <p className="text-[10px] text-muted-foreground uppercase">Gera receita no financeiro</p>
+                            </div>
+                            <Switch checked={svcForm.paymentReceived} onCheckedChange={(v: boolean) => setSvcForm({ ...svcForm, paymentReceived: v })} />
+                        </div>
+
+                        {svcForm.paymentReceived && (
+                            <div className="space-y-2 animate-in slide-in-from-top-2">
+                                <Label className="text-sm font-bold">Meio de Pagamento</Label>
+                                <Select value={svcForm.paymentMethod} onValueChange={(v) => setSvcForm({ ...svcForm, paymentMethod: v })}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        {["Pix", "Cartão de Crédito", "Cartão de Débito", "Boleto", "Dinheiro"].map(m => (
+                                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setSvcDialogOpen(false)}>Cancelar</Button>

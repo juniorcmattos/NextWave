@@ -39,7 +39,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         ...serviceData,
         clientId: serviceData.clientId === null ? null : serviceData.clientId,
         dueDate: serviceData.dueDate ? new Date(serviceData.dueDate) : undefined,
-      },
+      } as any,
     });
 
     const transaction = service.transactions[0];
@@ -47,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const updateAmount = serviceData.amount ?? service.amount;
     const clientUpdate = serviceData.clientId === null ? undefined : (serviceData.clientId || service.clientId);
 
-    const updateDueDate = serviceData.dueDate ? new Date(serviceData.dueDate) : (service.dueDate as Date | null);
+    const updateDueDate = serviceData.dueDate ? new Date(serviceData.dueDate) : ((service as any).dueDate as Date | null);
 
     if (transaction) {
       await prisma.transaction.update({

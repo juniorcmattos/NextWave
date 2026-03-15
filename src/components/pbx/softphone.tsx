@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, X, Minus, ChevronUp, History, User, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,31 +19,6 @@ export function Softphone() {
     const [status, setStatus] = useState<SipStatus>("offline");
     const [recentCalls, setRecentCalls] = useState<{ number: string; date: string }[]>([]);
     const [showHistory, setShowHistory] = useState(false);
-
-    useEffect(() => {
-        const savedHistory = localStorage.getItem("pbx_call_history");
-        if (savedHistory) setRecentCalls(JSON.parse(savedHistory));
-
-        sipClient.onStatusChange((newStatus) => {
-            setStatus(newStatus);
-            if (newStatus === "online") toast.success("PABX Conectado");
-            if (newStatus === "error") toast.error("Falha na conexão SIP");
-        });
-
-        // Tenta carregar configuração e iniciar
-        fetch("/api/sistema/pbx")
-            .then(res => res.json())
-            .then(config => {
-                if (config && config.isActive) {
-                    sipClient.init(config);
-                }
-            })
-            .catch(() => console.error("Falha ao carregar config PBX"));
-
-        return () => {
-            sipClient.stop();
-        };
-    }, []);
 
     const addDigit = (digit: string) => {
         setNumber(prev => prev + digit);
@@ -80,6 +56,46 @@ export function Softphone() {
         sipClient.toggleMute(next);
     };
 
+    useEffect(() => {
+        const savedHistory = localStorage.getItem("pbx_call_history");
+        if (savedHistory) setRecentCalls(JSON.parse(savedHistory));
+
+        sipClient.onStatusChange((newStatus) => {
+            setStatus(newStatus);
+            if (newStatus === "online") toast.success("PABX Conectado");
+            if (newStatus === "error") toast.error("Falha na conexão SIP");
+        });
+
+        // Tenta carregar configuração e iniciar
+        fetch("/api/sistema/pbx")
+            .then(res => res.json())
+            .then(config => {
+                if (config && config.isActive) {
+                    sipClient.init(config);
+                }
+            })
+            .catch(() => console.error("Falha ao carregar config PBX"));
+
+        // Listener para chamadas externas
+        const handleExternalCall = (e: any) => {
+            if (e.detail?.number) {
+                setNumber(e.detail.number);
+                setIsOpen(true);
+                setIsMinimized(false);
+                // Pequeno delay para garantir que o estado atualizou antes de ligar
+                setTimeout(() => {
+                    handleCall();
+                }, 500);
+            }
+        };
+        window.addEventListener('pbx:call' as any, handleExternalCall);
+
+        return () => {
+            sipClient.stop();
+            window.removeEventListener('pbx:call' as any, handleExternalCall);
+        };
+    }, [status, recentCalls, handleCall]);
+
     if (!isOpen) {
         return (
             <Button
@@ -101,11 +117,17 @@ export function Softphone() {
     }
 
     return (
-        <Card className={cn(
-            "fixed bottom-6 right-6 w-80 shadow-2xl border-primary/20 transition-all duration-300 z-50 overflow-hidden",
-            isMinimized ? "h-14" : "h-[520px]"
-        )}>
-            <CardHeader className="bg-primary text-primary-foreground p-3 flex flex-row items-center justify-between space-y-0">
+        <motion.div
+            drag
+            dragMomentum={false}
+            className="fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing"
+        >
+            <Card className={cn(
+                "w-80 shadow-2xl border-primary/20 overflow-hidden",
+                isMinimized ? "h-14" : "h-[520px]",
+                "transition-[height] duration-300"
+            )}>
+            <CardHeader className="bg-primary text-primary-foreground p-3 flex flex-row items-center justify-between space-y-0 select-none">
                 <div className="flex items-center gap-2">
                     <div className={cn(
                         "h-2 w-2 rounded-full",
@@ -222,6 +244,7 @@ export function Softphone() {
                     )}
                 </CardContent>
             )}
-        </Card>
+            </Card>
+        </motion.div>
     );
 }

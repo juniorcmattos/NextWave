@@ -86,9 +86,9 @@ model Transaction {
 }
 
 model Service {
-  id           String        @id @default(cuid())
-  title        String
-  description  String?
+  id               String        @id @default(cuid())
+  title            String
+  description      String?
   amount           Float
   status           String        @default("rascunho")
   category         String?

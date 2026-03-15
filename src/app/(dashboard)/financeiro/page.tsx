@@ -107,9 +107,8 @@ export default function FinanceiroPage() {
   }, [fetchTransactions, fetchSubscriptions]);
 
   const openCreate = (defaultType?: "receita" | "despesa") => {
-    setEditingTx(null);
-    reset({ type: defaultType ?? "receita", status: "pendente" });
-    setIsDialogOpen(true);
+    toast.info("As transações devem ser geradas através do menu de Serviços.");
+    return;
   };
 
   const openEdit = (tx: Transaction) => {
@@ -362,12 +361,10 @@ export default function FinanceiroPage() {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : subscriptions.length === 0 ? (
-                <div className="py-12 text-center space-y-4">
-                  <p className="text-muted-foreground">Nenhuma assinatura ativa encontrada.</p>
-                  <Button onClick={() => setIsSubDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar Primeira Assinatura
-                  </Button>
+                <div className="py-12 text-center space-y-2">
+                  <Clock className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-muted-foreground text-sm">Nenhuma assinatura ativa encontrada.</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">As assinaturas são geradas automaticamente via módulo de Serviços</p>
                 </div>
               ) : (
                 <div className="divide-y divide-border">

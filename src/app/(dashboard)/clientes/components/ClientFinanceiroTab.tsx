@@ -51,12 +51,7 @@ export function ClientFinanceiroTab({
       <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-border/50">
         <h3 className="font-bold text-slate-800 dark:text-slate-200">Histórico de Transações</h3>
         <div className="flex gap-2">
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg font-bold" onClick={() => openCreateTx("receita")}>
-            <Plus className="h-4 w-4 mr-2" /> Receita
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-xl font-bold border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => openCreateTx("despesa")}>
-            <Plus className="h-4 w-4 mr-2" /> Despesa
-          </Button>
+          <p className="text-[10px] text-muted-foreground uppercase font-medium">Gestão automatizada via Serviços</p>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { User, Mail, Phone, MapPin, Building2, FileText, QrCode, Save } from "lucide-react";
+import { User, Mail, Phone, MapPin, Building2, FileText, QrCode, Save, MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 interface ClientCadastroTabProps {
   client: any;
   onSave?: (data: any) => void;
+  onEdit?: () => void;
 }
 
-export function ClientCadastroTab({ client, onSave }: ClientCadastroTabProps) {
+export function ClientCadastroTab({ client, onSave, onEdit }: ClientCadastroTabProps) {
   return (
     <div className="grid gap-6">
       <div className="grid md:grid-cols-2 gap-6">
@@ -47,7 +48,35 @@ export function ClientCadastroTab({ client, onSave }: ClientCadastroTabProps) {
               </div>
               <div>
                 <Label className="text-[10px] uppercase text-muted-foreground">Telefones</Label>
-                <p className="text-sm font-semibold">{client?.phone || "N/A"}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold">{client?.phone || "N/A"}</p>
+                  {client?.phone && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                      onClick={() => {
+                        const num = client.phone.replace(/\D/g, '');
+                        window.dispatchEvent(new CustomEvent('pbx:call', { detail: { number: num } }));
+                      }}
+                    >
+                      <Phone className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {client?.phone && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                      onClick={() => {
+                        const num = client.phone.replace(/\D/g, '');
+                        window.open(`https://wa.me/${num}`, '_blank');
+                      }}
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -97,7 +126,7 @@ export function ClientCadastroTab({ client, onSave }: ClientCadastroTabProps) {
         <Button variant="outline" size="sm" className="rounded-xl font-bold">
           <QrCode className="h-4 w-4 mr-2" /> Cartão Digital
         </Button>
-        <Button size="sm" className="rounded-xl font-bold">
+        <Button size="sm" className="rounded-xl font-bold" onClick={onEdit}>
           <Save className="h-4 w-4 mr-2" /> Editar Dados
         </Button>
       </div>

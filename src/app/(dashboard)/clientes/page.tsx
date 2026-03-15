@@ -537,6 +537,10 @@ export default function ClientesPage() {
         clientId={selectedClientId || ""}
         open={isProfileOpen}
         onOpenChange={setIsProfileOpen}
+        onEdit={(c) => {
+          setIsProfileOpen(false);
+          openEdit(c);
+        }}
       />
     </div>
   );
