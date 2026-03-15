@@ -16,7 +16,7 @@ import { useColorTheme } from "@/components/providers/ColorProvider";
 import packageInfo from "../../../package.json";
 
 const dashboardSubItems = [
-  { href: "/dashboard/financeiro", label: "Financeiro", module: "financeiro" },
+  { href: "/financeiro", label: "Financeiro", module: "financeiro" },
   { href: "/dashboard/clientes", label: "Clientes", module: "clientes" },
   { href: "/dashboard/whatsapp", label: "WhatsApp", module: "whatsapp" },
   { href: "/dashboard/servicos", label: "Serviços", module: "servicos" },
@@ -32,13 +32,10 @@ type NavItem = {
   subItems?: SubItem[];
 };
 
-const clientesSubItems: SubItem[] = [
-  { href: "/financeiro", label: "Financeiro", module: "financeiro" },
-];
 
 const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, subItems: dashboardSubItems },
-  { href: "/clientes", label: "Clientes", icon: Users, module: "clientes", subItems: clientesSubItems },
+  { href: "/clientes", label: "Clientes", icon: Users, module: "clientes" },
   { href: "/usuarios", label: "Usuários", icon: Users },
   { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
   { href: "/servicos", label: "Serviços", icon: Briefcase, module: "servicos" },
@@ -72,7 +69,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   useEffect(() => {
     if (pathname.startsWith("/dashboard/")) setOpenMenus(prev => ({ ...prev, "/": true }));
-    if (pathname.startsWith("/financeiro")) setOpenMenus(prev => ({ ...prev, "/clientes": true }));
+    if (pathname.startsWith("/financeiro")) setOpenMenus(prev => ({ ...prev, "/": true }));
   }, [pathname]);
 
   useEffect(() => {
