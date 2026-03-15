@@ -26,6 +26,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - nextwave_network
 
   evolution-api:
     image: atendai/evolution-api:latest
@@ -39,11 +41,9 @@ services:
       - SERVER_TYPE=http
       - SERVER_PORT=8081
       - SERVER_URL=http://localhost:8081
-      - AUTH_TYPE=apikey
-      - AUTH_API_KEY=422A33A0-5E46-4A1C-91B1-65114660AF93
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=422A33A0-5E46-4A1C-91B1-65114660AF93
       - DATABASE_ENABLED=false
-      - DATABASE_PROVIDER=mysql
-      - DATABASE_CONNECTION_URI=mysql://nextwave_user:nextwave_pwd@nextwave-db:3306/nextwave_crm
       - CACHE_REDIS_ENABLED=false
       - CACHE_LOCAL_ENABLED=true
       - STORE_MESSAGES=true
@@ -57,6 +57,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - nextwave_network
 
   mariadb:
     image: mariadb:10.11
@@ -80,6 +82,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - nextwave_network
 
   mcp-server:
     profiles:
@@ -118,6 +122,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - nextwave_network
 
 volumes:
   crm-data:
@@ -126,3 +132,7 @@ volumes:
     driver: local
   mysql-data:
     driver: local
+
+networks:
+  nextwave_network:
+    driver: bridge

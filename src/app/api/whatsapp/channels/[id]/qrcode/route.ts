@@ -23,10 +23,44 @@ export async function GET(
             return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
         }
 
-        // Mock de QR Code
-        const mockQrCode = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAsTAAALEwEAmpwYAAABWWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIExpYnJhcnkgNS4yLjIuMSI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJDYW52YSI+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8L3B4d21wPgocZ80AAAF2SURBVHic7dExAQAAAMKg9U9tCy+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4Mwa4AAXid68AAAAAASUVORK5CYII=";
+        // Buscar configurações para conectar
+        const configs: any[] = await prisma.$queryRawUnsafe(
+            `SELECT * FROM "WhatsAppConfig" WHERE "id" = 'default' LIMIT 1`
+        );
+        const config = configs[0];
 
-        return NextResponse.json({ qrcode: mockQrCode });
+        if (!config || !config.apiUrl || !config.globalApiKey) {
+            return NextResponse.json({ error: "Evolution API não configurada globalmente" }, { status: 400 });
+        }
+
+        try {
+            // Pegar o QR Code real da Evolution API
+            const evoRes = await fetch(`${config.apiUrl}/instance/connect/${channel.instanceName}`, {
+                headers: {
+                    'apikey': config.globalApiKey
+                }
+            });
+
+            if (evoRes.ok) {
+                const data = await evoRes.json();
+                if (data && data.base64) {
+                    return NextResponse.json({ qrcode: data.base64 });
+                }
+                // Se já estiver logado, não tem QR Code
+                if (data && data.instance && data.instance.state === 'open') {
+                    // Podemos retornar um status de conectado
+                    return NextResponse.json({ qrcode: null, status: 'connected' });
+                }
+            } else {
+                console.error("[EVOLUTION_API] qr code api failed", await evoRes.text());
+                return NextResponse.json({ error: "Instância não encontrada na API ou falha ao gerar" }, { status: 404 });
+            }
+        } catch (apiErr) {
+            console.error("[EVOLUTION_API_CONN]", apiErr);
+            return NextResponse.json({ error: "Falha de rede com Evolution API" }, { status: 504 });
+        }
+
+        return NextResponse.json({ qrcode: null, status: 'unknown' });
     } catch (error) {
         console.error("[WHATSAPP_CHANNEL_QRCODE]", error);
         return NextResponse.json({ error: "Erro ao gerar QR Code" }, { status: 500 });
