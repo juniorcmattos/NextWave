@@ -51,30 +51,32 @@ export function ClientCadastroTab({ client, onSave, onEdit }: ClientCadastroTabP
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold">{client?.phone || "N/A"}</p>
                   {client?.phone && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                      onClick={() => {
-                        const num = client.phone.replace(/\D/g, '');
-                        window.dispatchEvent(new CustomEvent('pbx:call', { detail: { number: num } }));
-                      }}
-                    >
-                      <Phone className="h-3 w-3" />
-                    </Button>
-                  )}
-                  {client?.phone && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                      onClick={() => {
-                        const num = client.phone.replace(/\D/g, '');
-                        window.open(`https://wa.me/${num}`, '_blank');
-                      }}
-                    >
-                      <MessageCircle className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                        title="Ligar via PABX"
+                        onClick={() => {
+                          const num = client.phone.replace(/\D/g, '');
+                          window.dispatchEvent(new CustomEvent('pbx:call', { detail: { number: num } }));
+                        }}
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                        title="Enviar WhatsApp"
+                        onClick={() => {
+                          const num = client.phone.replace(/\D/g, '');
+                          window.open(`https://wa.me/${num}`, '_blank');
+                        }}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

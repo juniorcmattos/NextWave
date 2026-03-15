@@ -19,6 +19,7 @@ export function Softphone() {
     const [status, setStatus] = useState<SipStatus>("offline");
     const [recentCalls, setRecentCalls] = useState<{ number: string; date: string }[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+    const [dimensions, setDimensions] = useState({ width: 320, height: 520 });
 
     const addDigit = (digit: string) => {
         setNumber(prev => prev + digit);
@@ -96,23 +97,32 @@ export function Softphone() {
         };
     }, [status, recentCalls, handleCall]);
 
-    if (!isOpen) {
+    if (!isOpen || isMinimized) {
         return (
-            <Button
-                onClick={() => setIsOpen(true)}
-                className={cn(
-                    "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl animate-in zoom-in z-50",
-                    status === "online" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-primary"
-                )}
+            <motion.div
+                drag
+                dragMomentum={false}
+                className="fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing"
             >
-                <div className="relative">
-                    <Phone className="h-6 w-6" />
-                    <div className={cn(
-                        "absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white",
-                        status === "online" ? "bg-emerald-400" : status === "connecting" ? "bg-yellow-400" : "bg-red-400"
-                    )} />
-                </div>
-            </Button>
+                <Button
+                    onClick={() => {
+                        setIsOpen(true);
+                        setIsMinimized(false);
+                    }}
+                    className={cn(
+                        "h-14 w-14 rounded-full shadow-2xl animate-in zoom-in",
+                        status === "online" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-primary"
+                    )}
+                >
+                    <div className="relative">
+                        <Phone className="h-6 w-6" />
+                        <div className={cn(
+                            "absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-white",
+                            status === "online" ? "bg-emerald-400" : status === "connecting" ? "bg-yellow-400" : "bg-red-400"
+                        )} />
+                    </div>
+                </Button>
+            </motion.div>
         );
     }
 
@@ -121,11 +131,11 @@ export function Softphone() {
             drag
             dragMomentum={false}
             className="fixed bottom-6 right-6 z-50 cursor-grab active:cursor-grabbing"
+            style={{ width: dimensions.width, height: dimensions.height }}
         >
             <Card className={cn(
-                "w-80 shadow-2xl border-primary/20 overflow-hidden",
-                isMinimized ? "h-14" : "h-[520px]",
-                "transition-[height] duration-300"
+                "w-full h-full shadow-2xl border-primary/20 overflow-hidden flex flex-col",
+                "transition-[height,width] duration-300"
             )}>
             <CardHeader className="bg-primary text-primary-foreground p-3 flex flex-row items-center justify-between space-y-0 select-none">
                 <div className="flex items-center gap-2">
@@ -136,8 +146,8 @@ export function Softphone() {
                     <span className="text-sm font-bold">PBX {status.toUpperCase()}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20" onClick={() => setIsMinimized(!isMinimized)}>
-                        {isMinimized ? <ChevronUp className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20" onClick={() => setIsMinimized(true)}>
+                        <Minus className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20" onClick={() => setIsOpen(false)}>
                         <X className="h-4 w-4" />
@@ -245,6 +255,36 @@ export function Softphone() {
                 </CardContent>
             )}
             </Card>
+            {!isMinimized && (
+                <div 
+                    className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-[60] flex items-center justify-center"
+                    onMouseDown={(e) => {
+                        e.stopPropagation(); // Impede que o drag do framer-motion interfira
+                        e.preventDefault();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startW = dimensions.width;
+                        const startH = dimensions.height;
+
+                        const onMouseMove = (moveEvent: MouseEvent) => {
+                            setDimensions({
+                                width: Math.max(280, startW + (moveEvent.clientX - startX)),
+                                height: Math.max(400, startH + (moveEvent.clientY - startY))
+                            });
+                        };
+
+                        const onMouseUp = () => {
+                            window.removeEventListener('mousemove', onMouseMove);
+                            window.removeEventListener('mouseup', onMouseUp);
+                        };
+
+                        window.addEventListener('mousemove', onMouseMove);
+                        window.addEventListener('mouseup', onMouseUp);
+                    }}
+                >
+                    <div className="w-3 h-3 border-r-2 border-b-2 border-primary/40 rotate-45 mr-1 mb-1" />
+                </div>
+            )}
         </motion.div>
     );
 }
