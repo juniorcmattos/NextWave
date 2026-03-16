@@ -188,10 +188,20 @@ export default function WhatsAppSettingsPage() {
                 }
 
                 if (data.status === 'connected') {
-                    // Mostra estado "já conectado" no dialog em vez de fechar automaticamente
                     setQrStatus('connected');
                     setConnectedPhone(data.phone || null);
                     fetchChannels();
+                    toast.success(
+                        data.phone
+                            ? `WhatsApp conectado! Número: +${data.phone}`
+                            : 'WhatsApp conectado com sucesso!',
+                        { duration: 4000 }
+                    );
+                    // Fecha o dialog após 1.5s para o usuário ver o checkmark
+                    setTimeout(() => {
+                        isQrDialogOpenRef.current = false;
+                        setIsQrDialogOpen(false);
+                    }, 1500);
                     return;
                 }
 
