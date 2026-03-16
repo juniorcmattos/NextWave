@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
     Send, Paperclip, MoreVertical, Phone, Video,
-    Smile, Image as ImageIcon, FileText, User, Mic, ArrowLeft
+    Smile, User, Mic, ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ interface Message {
     status?: "sent" | "delivered" | "read";
 }
 
-export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void }) {
+export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -32,116 +32,117 @@ export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void })
     }, [messages]);
 
     useEffect(() => {
-        if (inputRef.current) {
-            inputRef.current.focus();
-        }
+        inputRef.current?.focus();
     }, [chat]);
 
     const handleSend = async () => {
         if (!input.trim()) return;
-        
-        const tempId = Date.now().toString();
+
+        const body = input;
         const newMessage: Message = {
-            id: tempId,
-            body: input,
+            id: Date.now().toString(),
+            body,
             fromMe: true,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: "sent"
+            time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+            status: "sent",
         };
-        
-        setMessages(prev => [...prev, newMessage]);
+
+        setMessages((prev) => [...prev, newMessage]);
         setInput("");
 
         try {
             const response = await fetch("/api/whatsapp/messages/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    number: chat.phone,
-                    text: input
-                })
+                body: JSON.stringify({ number: chat.phone, text: body }),
             });
-
-            if (!response.ok) {
-                console.error("Erro ao enviar mensagem");
-                // Poderia marcar a mensagem como falha aqui
-            }
+            if (!response.ok) console.error("Erro ao enviar mensagem");
         } catch (error) {
             console.error("Erro na requisição de envio:", error);
         }
     };
 
     return (
-        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950/20">
+        <div className="flex flex-col h-full w-full min-w-0 bg-slate-50 dark:bg-slate-950/20">
+
             {/* Header */}
-            <div className="h-16 flex items-center justify-between px-4 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex items-center gap-2">
+            <div className="h-16 flex-shrink-0 flex items-center justify-between px-4 border-b border-border bg-card/80 backdrop-blur-sm z-10">
+                <div className="flex items-center gap-2 min-w-0">
+                    {/* Botão voltar — só aparece no mobile */}
                     {onBack && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="md:hidden -ml-2 h-9 w-9"
+                            className="md:hidden -ml-2 h-9 w-9 flex-shrink-0"
                             onClick={onBack}
                         >
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     )}
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-border">
-                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
-                                {chat.customerName ? chat.customerName.charAt(0) : <User className="h-5 w-5" />}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <h3 className="text-sm font-bold leading-none truncate max-w-[140px] sm:max-w-none">
-                                {chat.customerName || `+${chat.phone}`}
-                            </h3>
-                            <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                online agora
-                            </span>
-                        </div>
+                    <Avatar className="h-10 w-10 border border-border flex-shrink-0">
+                        <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                            {chat.customerName ? chat.customerName.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col min-w-0 ml-1">
+                        <h3 className="text-sm font-bold leading-none truncate">
+                            {chat.customerName || `+${chat.phone}`}
+                        </h3>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                            {chat.customerName ? `+${chat.phone}` : "WhatsApp"}
+                        </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 opacity-50"><Phone className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 opacity-50"><Video className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9"><MoreVertical className="h-4 w-4" /></Button>
+                <div className="flex items-center gap-0.5 text-muted-foreground flex-shrink-0">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 opacity-30 cursor-not-allowed" disabled>
+                        <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 opacity-30 cursor-not-allowed" disabled>
+                        <Video className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <MoreVertical className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
 
-            {/* Messages Area */}
-            <ScrollArea className="flex-1" ref={scrollRef}>
-                <div className="flex flex-col gap-3 p-4 min-h-full justify-end">
+            {/* Área de mensagens */}
+            <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
+                <div className="flex flex-col gap-2 p-4 md:p-6 min-h-full justify-end">
+                    {messages.length === 0 && (
+                        <div className="flex flex-col items-center justify-center text-center opacity-25 py-16">
+                            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                                <User className="h-8 w-8" />
+                            </div>
+                            <p className="text-sm font-medium">Nenhuma mensagem ainda</p>
+                            <p className="text-xs mt-1">Envie uma mensagem para iniciar a conversa.</p>
+                        </div>
+                    )}
                     {messages.map((msg) => (
                         <div
                             key={msg.id}
                             className={cn(
-                                "flex w-full max-w-[80%] flex-col gap-1",
+                                "flex flex-col gap-0.5 max-w-[80%] md:max-w-[65%] lg:max-w-[55%]",
                                 msg.fromMe ? "ml-auto items-end" : "items-start"
                             )}
                         >
-                            <div
-                                className={cn(
-                                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all",
-                                    msg.fromMe
-                                        ? "bg-primary text-primary-foreground rounded-tr-none"
-                                        : "bg-card border border-border rounded-tl-none"
-                                )}
-                            >
+                            <div className={cn(
+                                "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                                msg.fromMe
+                                    ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                    : "bg-card border border-border rounded-tl-sm"
+                            )}>
                                 {msg.body}
                             </div>
-                            <div className="flex items-center gap-1.5 px-1">
-                                <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">
+                            <div className="flex items-center gap-1 px-1">
+                                <span className="text-[9px] text-muted-foreground">
                                     {msg.time}
                                 </span>
                                 {msg.fromMe && (
                                     <span className={cn(
                                         "text-[10px]",
-                                        msg.status === "read" ? "text-sky-500" : "text-muted-foreground"
-                                    )}>
-                                        ✓✓
-                                    </span>
+                                        msg.status === "read" ? "text-sky-500" : "text-muted-foreground/60"
+                                    )}>✓✓</span>
                                 )}
                             </div>
                         </div>
@@ -149,32 +150,36 @@ export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void })
                 </div>
             </ScrollArea>
 
-            {/* Footer / Input */}
-            <div className="p-4 bg-card/80 backdrop-blur-sm border-t border-border">
-                <div className="flex items-end gap-2 max-w-4xl mx-auto">
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary"><Smile className="h-5 w-5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary"><Paperclip className="h-5 w-5" /></Button>
-                    </div>
-                    <div className="flex-1 relative group">
+            {/* Barra de input */}
+            <div className="flex-shrink-0 p-3 md:p-4 bg-card/80 backdrop-blur-sm border-t border-border">
+                <div className="flex items-center gap-1.5 w-full">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary flex-shrink-0 rounded-xl">
+                        <Smile className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary flex-shrink-0 rounded-xl">
+                        <Paperclip className="h-5 w-5" />
+                    </Button>
+                    <div className="flex-1 relative min-w-0">
                         <Input
                             ref={inputRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                            placeholder="Digite sua mensagem..."
-                            className="pr-12 bg-accent/50 border-none shadow-none h-12 rounded-2xl focus-visible:ring-1 group-hover:bg-accent transition-colors"
+                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                            placeholder="Digite uma mensagem..."
+                            className="pr-12 bg-accent/50 border-none shadow-none h-11 rounded-2xl focus-visible:ring-1"
                         />
                         <Button
                             onClick={handleSend}
                             disabled={!input.trim()}
-                            className="absolute right-1 top-1 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                            className="absolute right-1 top-0.5 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 transition-all hover:scale-105 active:scale-95"
                             size="icon"
                         >
                             <Send className="h-4 w-4" />
                         </Button>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 bg-accent/50 text-muted-foreground rounded-2xl"><Mic className="h-5 w-5" /></Button>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground flex-shrink-0 rounded-xl bg-accent/40">
+                        <Mic className="h-5 w-5" />
+                    </Button>
                 </div>
             </div>
         </div>
