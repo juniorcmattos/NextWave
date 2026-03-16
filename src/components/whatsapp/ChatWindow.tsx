@@ -22,13 +22,44 @@ interface Message {
 export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
+    const [sending, setSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
+    const scrollToBottom = () => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
+    };
+
+    const fetchMessages = async (phone: string) => {
+        try {
+            const res = await fetch(`/api/whatsapp/messages?phone=${phone}`);
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data.messages || []);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar mensagens:", error);
+        }
+    };
+
+    useEffect(() => {
+        setMessages([]);
+        if (!chat?.phone) return;
+
+        fetchMessages(chat.phone);
+
+        // Polling a cada 5s para novas mensagens
+        pollingRef.current = setInterval(() => fetchMessages(chat.phone), 5000);
+        return () => {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+        };
+    }, [chat?.phone]);
+
+    useEffect(() => {
+        scrollToBottom();
     }, [messages]);
 
     useEffect(() => {
@@ -36,19 +67,21 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
     }, [chat]);
 
     const handleSend = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() || sending) return;
 
         const body = input;
-        const newMessage: Message = {
-            id: Date.now().toString(),
+        setInput("");
+        setSending(true);
+
+        // Otimista: adiciona localmente antes de confirmar
+        const optimisticMsg: Message = {
+            id: `opt-${Date.now()}`,
             body,
             fromMe: true,
             time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
             status: "sent",
         };
-
-        setMessages((prev) => [...prev, newMessage]);
-        setInput("");
+        setMessages((prev) => [...prev, optimisticMsg]);
 
         try {
             const response = await fetch("/api/whatsapp/messages/send", {
@@ -56,9 +89,16 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ number: chat.phone, text: body }),
             });
-            if (!response.ok) console.error("Erro ao enviar mensagem");
+            if (!response.ok) {
+                console.error("Erro ao enviar mensagem");
+            } else {
+                // Recarrega mensagens para sincronizar com o servidor
+                setTimeout(() => fetchMessages(chat.phone), 1500);
+            }
         } catch (error) {
             console.error("Erro na requisição de envio:", error);
+        } finally {
+            setSending(false);
         }
     };
 
@@ -170,7 +210,7 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
                         />
                         <Button
                             onClick={handleSend}
-                            disabled={!input.trim()}
+                            disabled={!input.trim() || sending}
                             className="absolute right-1 top-0.5 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 transition-all hover:scale-105 active:scale-95"
                             size="icon"
                         >

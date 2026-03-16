@@ -54,8 +54,7 @@ export async function sendWhatsAppMessage(to: string, message: string) {
             },
             body: JSON.stringify({
                 number: cleanNumber,
-                options: { delay: 1200, presence: "composing", linkPreview: true },
-                textMessage: { text: message },
+                text: message,
             }),
         });
 
@@ -69,6 +68,53 @@ export async function sendWhatsAppMessage(to: string, message: string) {
     } catch (error) {
         console.error("[WHATSAPP_SERVICE_ERROR]", error);
         return false;
+    }
+}
+
+export async function getWhatsAppMessages(phone: string) {
+    try {
+        const config = await getActiveConfig();
+        if (!config) return [];
+
+        const instance = await getActiveInstance();
+        if (!instance) return [];
+
+        const remoteJid = `${phone}@s.whatsapp.net`;
+        const url = `${config.apiUrl}/chat/findMessages/${instance}`;
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "apikey": config.apiKey },
+            body: JSON.stringify({
+                where: { key: { remoteJid } },
+                limit: 50,
+            }),
+        });
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        const messages = Array.isArray(data) ? data : data.messages ?? [];
+
+        return messages.map((msg: any) => ({
+            id: msg.key?.id || msg.id || String(Date.now()),
+            body:
+                msg.message?.conversation ||
+                msg.message?.extendedTextMessage?.text ||
+                msg.message?.imageMessage?.caption ||
+                "[mídia]",
+            fromMe: msg.key?.fromMe ?? false,
+            time: msg.messageTimestamp
+                ? new Date(Number(msg.messageTimestamp) * 1000).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                  })
+                : "Agora",
+            timestamp: msg.messageTimestamp ? Number(msg.messageTimestamp) : 0,
+        })).sort((a: any, b: any) => a.timestamp - b.timestamp);
+    } catch (error) {
+        console.error("[WHATSAPP_GET_MESSAGES_ERROR]", error);
+        return [];
     }
 }
 
