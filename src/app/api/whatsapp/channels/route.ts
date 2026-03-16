@@ -49,7 +49,11 @@ export async function POST(req: Request) {
         if (config && config.apiUrl && config.globalApiKey) {
             // 2. Chamar a Evolution API para criar a instancia
             try {
-                const evoRes = await fetch(`${config.apiUrl}/instance/create`, {
+                // Substitui localhost pelo hostname Docker para funcionar dentro do container
+                const evoApiUrl = (config.apiUrl.includes('localhost') || config.apiUrl.includes('127.0.0.1'))
+                    ? 'http://evolution-api:8081'
+                    : config.apiUrl;
+                const evoRes = await fetch(`${evoApiUrl}/instance/create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -64,12 +68,11 @@ export async function POST(req: Request) {
                 });
 
                 if (!evoRes.ok) {
-                    console.error("[EVOLUTION_API] Falha ao criar instancia", await evoRes.text());
-                    // Ignora e cria apenas no BD se falhar a API remota, ou falha aqui? 
-                    // Melhor continuar para registrar o canal mesmo assim
+                    const errorText = await evoRes.text();
+                    console.error("[EVOLUTION_API] Falha ao criar instância:", errorText);
                 }
             } catch (evoErr) {
-                console.error("[EVOLUTION_API] Erro ao conectar", evoErr);
+                console.error("[EVOLUTION_API] Erro de rede ao conectar:", evoErr);
             }
         }
 

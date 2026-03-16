@@ -1,12 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { ChatList } from "@/components/whatsapp/ChatList";
 import { ChatWindow } from "@/components/whatsapp/ChatWindow";
 import { MessageSquareOff } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-export default function WhatsAppChatPage() {
+function ChatPageContent() {
+    const searchParams = useSearchParams();
+    const phoneParam = searchParams.get("phone");
     const [selectedChat, setSelectedChat] = useState<any>(null);
+
+    useEffect(() => {
+        if (phoneParam) {
+            setSelectedChat({
+                id: "nova-conversa-" + phoneParam,
+                phone: phoneParam,
+                customerName: null,
+                lastMessage: "",
+                time: "Agora",
+                unread: 0,
+            });
+        }
+    }, [phoneParam]);
 
     return (
         <div className="h-[calc(100vh-140px)] border border-border rounded-2xl overflow-hidden bg-card/30 backdrop-blur-xl flex shadow-2xl shadow-slate-200/50 dark:shadow-none">
@@ -38,4 +55,10 @@ export default function WhatsAppChatPage() {
     );
 }
 
-import { cn } from "@/lib/utils";
+export default function WhatsAppChatPage() {
+    return (
+        <Suspense fallback={<div className="h-[calc(100vh-140px)] flex items-center justify-center">Carregando Chat...</div>}>
+            <ChatPageContent />
+        </Suspense>
+    );
+}

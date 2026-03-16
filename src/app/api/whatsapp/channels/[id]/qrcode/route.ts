@@ -34,30 +34,43 @@ export async function GET(
         }
 
         try {
-            // Pegar o QR Code real da Evolution API
-            const evoRes = await fetch(`${config.apiUrl}/instance/connect/${channel.instanceName}`, {
-                headers: {
-                    'apikey': config.globalApiKey
-                }
+            const apiUrl = (config.apiUrl.includes('localhost') || config.apiUrl.includes('127.0.0.1')) 
+                ? 'http://evolution-api:8081' 
+                : config.apiUrl;
+            
+            // Reduzir timeout para 10s para evitar 504 do servidor Next.js
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            const evoRes = await fetch(`${apiUrl}/instance/connect/${channel.instanceName}`, {
+                headers: { 'apikey': config.globalApiKey },
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
+
+            console.log(`[EVOLUTION_DEBUG] Instância: ${channel.instanceName}, Status: ${evoRes.status}`);
 
             if (evoRes.ok) {
                 const data = await evoRes.json();
+                console.log(`[EVOLUTION_DEBUG] Resposta:`, JSON.stringify(data));
+                
                 if (data && data.base64) {
-                    return NextResponse.json({ qrcode: data.base64 });
+                    return NextResponse.json({ qrcode: data.base64, status: 'ready' });
                 }
-                // Se já estiver logado, não tem QR Code
-                if (data && data.instance && data.instance.state === 'open') {
-                    // Podemos retornar um status de conectado
+                if (data && (data.instance?.state === 'open' || data.state === 'open')) {
                     return NextResponse.json({ qrcode: null, status: 'connected' });
                 }
+                return NextResponse.json({ qrcode: null, status: 'preparing' });
             } else {
-                console.error("[EVOLUTION_API] qr code api failed", await evoRes.text());
-                return NextResponse.json({ error: "Instância não encontrada na API ou falha ao gerar" }, { status: 404 });
+                const errText = await evoRes.text();
+                console.error(`[EVOLUTION_DEBUG] Erro da API: ${errText}`);
+                return NextResponse.json({ qrcode: null, status: 'initializing', message: "Aguardando geração do QR..." });
             }
-        } catch (apiErr) {
-            console.error("[EVOLUTION_API_CONN]", apiErr);
-            return NextResponse.json({ error: "Falha de rede com Evolution API" }, { status: 504 });
+        } catch (apiErr: any) {
+            console.error("[EVOLUTION_API_QUIET] Erro ou Timeout ignorado para polling:", apiErr.message);
+            // Retorna status de processamento em vez de erro bruto para o frontend continuar tentando
+            return NextResponse.json({ qrcode: null, status: 'pending' });
         }
 
         return NextResponse.json({ qrcode: null, status: 'unknown' });

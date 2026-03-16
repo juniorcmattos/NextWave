@@ -19,17 +19,11 @@ interface Message {
     status?: "sent" | "delivered" | "read";
 }
 
-const MOCK_MESSAGES: Message[] = [
-    { id: "1", body: "Olá, bem-vindo ao suporte NextWave!", fromMe: true, time: "10:00", status: "read" },
-    { id: "2", body: "Como posso ajudá-lo hoje?", fromMe: true, time: "10:00", status: "read" },
-    { id: "3", body: "Olá! Gostaria de saber mais sobre o plano Pro.", fromMe: false, time: "10:30" },
-    { id: "4", body: "Claro! O plano Pro inclui automações avançadas e o módulo de WhatsApp que estamos usando agora.", fromMe: true, time: "10:31", status: "delivered" },
-];
-
 export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void }) {
-    const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -37,17 +31,44 @@ export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void })
         }
     }, [messages]);
 
-    const handleSend = () => {
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [chat]);
+
+    const handleSend = async () => {
         if (!input.trim()) return;
+        
+        const tempId = Date.now().toString();
         const newMessage: Message = {
-            id: Date.now().toString(),
+            id: tempId,
             body: input,
             fromMe: true,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             status: "sent"
         };
-        setMessages([...messages, newMessage]);
+        
+        setMessages(prev => [...prev, newMessage]);
         setInput("");
+
+        try {
+            const response = await fetch("/api/whatsapp/messages/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    number: chat.phone,
+                    text: input
+                })
+            });
+
+            if (!response.ok) {
+                console.error("Erro ao enviar mensagem");
+                // Poderia marcar a mensagem como falha aqui
+            }
+        } catch (error) {
+            console.error("Erro na requisição de envio:", error);
+        }
     };
 
     return (
@@ -137,6 +158,7 @@ export function ChatWindow({ chat, onBack }: { chat: any, onBack?: () => void })
                     </div>
                     <div className="flex-1 relative group">
                         <Input
+                            ref={inputRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}

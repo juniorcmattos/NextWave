@@ -2,6 +2,7 @@
 
 import {
     useEffect,
+    useRef,
     useState
 } from "react";
 import {
@@ -37,6 +38,7 @@ export default function WhatsAppSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [qrCode, setQrCode] = useState<string | null>(null);
     const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
+    const isQrDialogOpenRef = useRef(false);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
     const [newName, setNewName] = useState("");
     const [newInstance, setNewInstance] = useState("");
@@ -164,19 +166,41 @@ export default function WhatsAppSettingsPage() {
     const loadQrCode = async (channel: Channel) => {
         setSelectedChannel(channel);
         setQrCode(null);
+        isQrDialogOpenRef.current = true;
         setIsQrDialogOpen(true);
 
-        try {
-            const res = await fetch(`/api/whatsapp/channels/${channel.id}/qrcode`);
-            const data = await res.json();
-            if (data.qrcode) {
-                setQrCode(data.qrcode);
-            } else {
-                toast.error("QR Code não disponível");
+        const pollQr = async () => {
+            // Usa ref para checar se o dialog ainda está aberto (evita stale closure)
+            if (!isQrDialogOpenRef.current) return;
+
+            try {
+                const res = await fetch(`/api/whatsapp/channels/${channel.id}/qrcode`);
+                const data = await res.json();
+
+                if (data.qrcode) {
+                    // Garante prefixo base64 para compatibilidade com diferentes versões da Evolution API
+                    const qrSrc = data.qrcode.startsWith('data:') ? data.qrcode : `data:image/png;base64,${data.qrcode}`;
+                    setQrCode(qrSrc);
+                    return;
+                }
+
+                if (data.status === 'connected') {
+                    toast.success("WhatsApp conectado com sucesso!");
+                    isQrDialogOpenRef.current = false;
+                    setIsQrDialogOpen(false);
+                    fetchChannels();
+                    return;
+                }
+
+                // QR ainda não disponível, tenta novamente em 3 segundos
+                setTimeout(pollQr, 3000);
+            } catch (error) {
+                console.error("Erro no polling do QR Code:", error);
+                setTimeout(pollQr, 5000);
             }
-        } catch (error) {
-            toast.error("Erro ao carregar QR Code");
-        }
+        };
+
+        pollQr();
     };
 
     return (
@@ -354,7 +378,7 @@ export default function WhatsAppSettingsPage() {
             </Card>
 
             {/* QR Code Dialog */}
-            <Dialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen}>
+            <Dialog open={isQrDialogOpen} onOpenChange={(open) => { isQrDialogOpenRef.current = open; setIsQrDialogOpen(open); }}>
                 <DialogContent className="sm:max-w-md flex flex-col items-center">
                     <DialogHeader className="w-full text-center">
                         <DialogTitle>Conectar {selectedChannel?.name}</DialogTitle>

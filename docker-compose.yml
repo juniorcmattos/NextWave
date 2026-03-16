@@ -7,7 +7,7 @@ services:
     container_name: nextwave-crm
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3010}:3000"
     env_file:
       - .env
     environment:
@@ -30,22 +30,36 @@ services:
       - nextwave_network
 
   evolution-api:
-    image: atendai/evolution-api:latest
+    build:
+      context: .
+      dockerfile: evolution-api.Dockerfile
+    image: evolution-api-patched:latest
     container_name: evolution-api
     restart: unless-stopped
     ports:
       - "8081:8081"
-    env_file:
-      - .env
     environment:
       - SERVER_TYPE=http
       - SERVER_PORT=8081
-      - SERVER_URL=http://localhost:8081
+      - SERVER_URL=http://evolution-api:8081
       - AUTHENTICATION_TYPE=apikey
       - AUTHENTICATION_API_KEY=422A33A0-5E46-4A1C-91B1-65114660AF93
-      - DATABASE_ENABLED=false
+      - LOG_LEVEL=ERROR
+      - LOG_BAILEYS=error
+      - DEL_INSTANCE=false
+      - DATABASE_ENABLED=true
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - DATABASE_PROVIDER=mysql
+      - DATABASE_CONNECTION_URI=mysql://nextwave_user:nextwave_pwd@nextwave-db:3306/nextwave_crm?createDatabaseIfNotExist=true
       - CACHE_REDIS_ENABLED=false
       - CACHE_LOCAL_ENABLED=true
+      - WA_VERSION=2.3000.1035214861
+      - CONFIG_SESSION_PHONE_VERSION=2.3000.1035214861
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      - WEBHOOK_GLOBAL_ENABLED=false
       - STORE_MESSAGES=true
       - STORE_MESSAGE_UP=true
       - STORE_CONTACTS=true

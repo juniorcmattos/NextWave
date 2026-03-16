@@ -9,11 +9,9 @@ export async function GET() {
     }
 
     try {
-        const configs: any[] = await prisma.$queryRawUnsafe(
-            `SELECT * FROM "WhatsAppConfig" WHERE "id" = 'default' LIMIT 1`
-        );
-
-        const config = configs[0];
+        const config = await prisma.whatsAppConfig.findUnique({
+            where: { id: 'default' }
+        });
 
         if (!config) {
             return NextResponse.json({
@@ -22,7 +20,10 @@ export async function GET() {
             });
         }
 
-        return NextResponse.json(config);
+        return NextResponse.json({
+            ...config,
+            apiKey: config.globalApiKey // Map globalApiKey to apiKey for frontend compatibility
+        });
     } catch (error) {
         console.error("[WHATSAPP_CONFIG_GET]", error);
         return NextResponse.json({ error: "Erro ao obter configuração" }, { status: 500 });
@@ -38,21 +39,21 @@ export async function POST(req: Request) {
     try {
         const body = await req.json();
         const { apiUrl, apiKey, waVersion } = body;
-        const now = new Date().toISOString();
-
-        // Tentar atualizar
-        const updated = await prisma.$executeRawUnsafe(
-            `UPDATE "WhatsAppConfig" SET "apiUrl" = ?, "apiKey" = ?, "waVersion" = ?, "updatedAt" = ? WHERE "id" = 'default'`,
-            apiUrl, apiKey, waVersion, now
-        );
-
-        // Se não existir, inserir
-        if (updated === 0) {
-            await prisma.$executeRawUnsafe(
-                `INSERT INTO "WhatsAppConfig" ("id", "apiUrl", "apiKey", "waVersion", "updatedAt") VALUES ('default', ?, ?, ?, ?)`,
-                apiUrl, apiKey, waVersion, now
-            );
-        }
+        await prisma.whatsAppConfig.upsert({
+            where: { id: 'default' },
+            create: {
+                id: 'default',
+                apiUrl: apiUrl || "",
+                globalApiKey: apiKey || "",
+                waVersion: waVersion || "2.3000.x",
+                isActive: true
+            },
+            update: {
+                apiUrl: apiUrl || "",
+                globalApiKey: apiKey || "",
+                waVersion: waVersion || "2.3000.x",
+            }
+        });
 
         return NextResponse.json({ success: true });
     } catch (error) {
