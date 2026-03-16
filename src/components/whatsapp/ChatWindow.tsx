@@ -33,7 +33,8 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
         }
     };
 
-    const fetchMessages = async (phone: string) => {
+    // Carregamento inicial — substitui tudo
+    const loadMessages = async (phone: string) => {
         try {
             const res = await fetch(`/api/whatsapp/messages?phone=${phone}`);
             if (res.ok) {
@@ -41,7 +42,37 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
                 setMessages(data.messages || []);
             }
         } catch (error) {
-            console.error("Erro ao buscar mensagens:", error);
+            console.error("Erro ao carregar mensagens:", error);
+        }
+    };
+
+    // Polling — faz merge: adiciona novas sem remover as existentes (inclusive otimistas)
+    const mergeMessages = async (phone: string) => {
+        try {
+            const res = await fetch(`/api/whatsapp/messages?phone=${phone}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const incoming: Message[] = data.messages || [];
+
+            setMessages((prev) => {
+                const incomingIds = new Set(incoming.map((m) => m.id));
+                // Mantém mensagens otimistas/com erro que o servidor ainda não confirmou
+                const pendingLocal = prev.filter(
+                    (m) =>
+                        (m.id.startsWith("opt-") || m.status === "error") &&
+                        !incoming.some((im) => im.fromMe && im.body === m.body)
+                );
+                // Combina: mensagens do servidor + otimistas ainda não confirmadas
+                const merged = [...incoming, ...pendingLocal];
+                merged.sort((a, b) => {
+                    const ta = (a as any).timestamp || 0;
+                    const tb = (b as any).timestamp || 0;
+                    return ta - tb;
+                });
+                return merged;
+            });
+        } catch (error) {
+            console.error("Erro ao atualizar mensagens:", error);
         }
     };
 
@@ -49,10 +80,10 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
         setMessages([]);
         if (!chat?.phone) return;
 
-        fetchMessages(chat.phone);
+        loadMessages(chat.phone);
 
-        // Polling a cada 5s para novas mensagens
-        pollingRef.current = setInterval(() => fetchMessages(chat.phone), 5000);
+        // Polling a cada 5s — merge, não substitui
+        pollingRef.current = setInterval(() => mergeMessages(chat.phone), 5000);
         return () => {
             if (pollingRef.current) clearInterval(pollingRef.current);
         };
@@ -96,8 +127,8 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
                 );
                 console.error("Erro ao enviar mensagem");
             } else {
-                // Aguarda 1.5s e sincroniza com o servidor (substitui a msg otimista pela real)
-                setTimeout(() => fetchMessages(chat.phone), 1500);
+                // Aguarda 2s e faz merge — a msg otimista fica até o servidor confirmar
+                setTimeout(() => mergeMessages(chat.phone), 2000);
             }
         } catch (error) {
             setMessages((prev) =>
