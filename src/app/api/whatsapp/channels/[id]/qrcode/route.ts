@@ -18,12 +18,10 @@ export async function GET(
         );
 
         const channel = channels[0];
-
         if (!channel) {
             return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
         }
 
-        // Buscar configurações para conectar
         const configs: any[] = await prisma.$queryRawUnsafe(
             `SELECT * FROM "WhatsAppConfig" WHERE "id" = 'default' LIMIT 1`
         );
@@ -33,47 +31,84 @@ export async function GET(
             return NextResponse.json({ error: "Evolution API não configurada globalmente" }, { status: 400 });
         }
 
-        try {
-            const apiUrl = (config.apiUrl.includes('localhost') || config.apiUrl.includes('127.0.0.1')) 
-                ? 'http://evolution-api:8081' 
-                : config.apiUrl;
-            
-            // Reduzir timeout para 10s para evitar 504 do servidor Next.js
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const apiUrl = (config.apiUrl.includes('localhost') || config.apiUrl.includes('127.0.0.1'))
+            ? 'http://evolution-api:8081'
+            : config.apiUrl;
 
-            const evoRes = await fetch(`${apiUrl}/instance/connect/${channel.instanceName}`, {
-                headers: { 'apikey': config.globalApiKey },
+        const headers = { 'apikey': config.globalApiKey, 'Content-Type': 'application/json' };
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        try {
+            let connectRes = await fetch(`${apiUrl}/instance/connect/${channel.instanceName}`, {
+                headers,
                 signal: controller.signal
             });
-            
+
+            // Instância não existe → cria automaticamente e reconecta
+            if (connectRes.status === 404) {
+                console.log(`[QRCODE] Instância ${channel.instanceName} não existe. Criando...`);
+
+                const createRes = await fetch(`${apiUrl}/instance/create`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        instanceName: channel.instanceName,
+                        qrcode: true,
+                        integration: "WHATSAPP-BAILEYS"
+                    })
+                });
+
+                if (!createRes.ok) {
+                    const errText = await createRes.text();
+                    console.error(`[QRCODE] Falha ao criar instância: ${errText}`);
+                    return NextResponse.json({ qrcode: null, status: 'error', message: "Falha ao criar instância na Evolution API" });
+                }
+
+                // Aguarda 2s para a instância inicializar
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                connectRes = await fetch(`${apiUrl}/instance/connect/${channel.instanceName}`, { headers });
+            }
+
             clearTimeout(timeoutId);
 
-            console.log(`[EVOLUTION_DEBUG] Instância: ${channel.instanceName}, Status: ${evoRes.status}`);
+            console.log(`[QRCODE] Instância: ${channel.instanceName}, Status HTTP: ${connectRes.status}`);
 
-            if (evoRes.ok) {
-                const data = await evoRes.json();
-                console.log(`[EVOLUTION_DEBUG] Resposta:`, JSON.stringify(data));
-                
-                if (data && data.base64) {
-                    return NextResponse.json({ qrcode: data.base64, status: 'ready' });
-                }
-                if (data && (data.instance?.state === 'open' || data.state === 'open')) {
-                    return NextResponse.json({ qrcode: null, status: 'connected' });
-                }
+            if (!connectRes.ok) {
                 return NextResponse.json({ qrcode: null, status: 'preparing' });
-            } else {
-                const errText = await evoRes.text();
-                console.error(`[EVOLUTION_DEBUG] Erro da API: ${errText}`);
-                return NextResponse.json({ qrcode: null, status: 'initializing', message: "Aguardando geração do QR..." });
             }
+
+            const data = await connectRes.json();
+            console.log(`[QRCODE] Resposta:`, JSON.stringify(data).substring(0, 200));
+
+            // Já conectado — retorna status específico (não fecha o dialog automaticamente)
+            if (data?.instance?.state === 'open' || data?.state === 'open') {
+                // Busca número conectado se disponível
+                const infoRes = await fetch(`${apiUrl}/instance/fetchInstances`, { headers }).catch(() => null);
+                let phone: string | null = null;
+                if (infoRes?.ok) {
+                    const instances: any[] = await infoRes.json().catch(() => []);
+                    const inst = instances.find((i: any) => i.name === channel.instanceName);
+                    phone = inst?.ownerJid?.split('@')[0] ?? null;
+                }
+                return NextResponse.json({ qrcode: null, status: 'connected', phone });
+            }
+
+            // QR code disponível
+            if (data?.base64) {
+                return NextResponse.json({ qrcode: data.base64, status: 'ready' });
+            }
+
+            return NextResponse.json({ qrcode: null, status: 'preparing' });
+
         } catch (apiErr: any) {
-            console.error("[EVOLUTION_API_QUIET] Erro ou Timeout ignorado para polling:", apiErr.message);
-            // Retorna status de processamento em vez de erro bruto para o frontend continuar tentando
+            clearTimeout(timeoutId);
+            console.error("[QRCODE] Erro ou timeout:", apiErr.message);
             return NextResponse.json({ qrcode: null, status: 'pending' });
         }
 
-        return NextResponse.json({ qrcode: null, status: 'unknown' });
     } catch (error) {
         console.error("[WHATSAPP_CHANNEL_QRCODE]", error);
         return NextResponse.json({ error: "Erro ao gerar QR Code" }, { status: 500 });

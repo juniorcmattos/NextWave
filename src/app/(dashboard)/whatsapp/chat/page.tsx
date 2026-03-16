@@ -8,13 +8,14 @@ import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * Altura do chat = 100svh − header(64px) − padding do main por breakpoint:
- *   mobile  → p-4  = 16px × 2 = 32px  → calc(100svh − 96px)
- *   md      → p-6  = 24px × 2 = 48px  → calc(100svh − 112px)
- *   lg      → p-8  = 32px × 2 = 64px  → calc(100svh − 128px)
+ * Altura do chat = 100vh − header(64px) − padding vertical do main por breakpoint:
+ *   mobile  → p-4  = 16px × 2 = 32px  → calc(100vh - 96px)
+ *   md      → p-6  = 24px × 2 = 48px  → calc(100vh - 112px)
+ *   lg      → p-8  = 32px × 2 = 64px  → calc(100vh - 128px)
+ * Tailwind: usar underscore para espaços dentro de calc()
  */
 const CHAT_HEIGHT =
-    "h-[calc(100svh-96px)] md:h-[calc(100svh-112px)] lg:h-[calc(100svh-128px)]";
+    "h-[calc(100vh_-_96px)] md:h-[calc(100vh_-_112px)] lg:h-[calc(100vh_-_128px)]";
 
 function ChatPageContent() {
     const searchParams = useSearchParams();

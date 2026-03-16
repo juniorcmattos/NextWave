@@ -37,6 +37,8 @@ export default function WhatsAppSettingsPage() {
     const [channels, setChannels] = useState<Channel[]>([]);
     const [loading, setLoading] = useState(true);
     const [qrCode, setQrCode] = useState<string | null>(null);
+    const [qrStatus, setQrStatus] = useState<'loading' | 'ready' | 'connected' | 'error'>('loading');
+    const [connectedPhone, setConnectedPhone] = useState<string | null>(null);
     const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
     const isQrDialogOpenRef = useRef(false);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -166,11 +168,12 @@ export default function WhatsAppSettingsPage() {
     const loadQrCode = async (channel: Channel) => {
         setSelectedChannel(channel);
         setQrCode(null);
+        setQrStatus('loading');
+        setConnectedPhone(null);
         isQrDialogOpenRef.current = true;
         setIsQrDialogOpen(true);
 
         const pollQr = async () => {
-            // Usa ref para checar se o dialog ainda está aberto (evita stale closure)
             if (!isQrDialogOpenRef.current) return;
 
             try {
@@ -178,21 +181,26 @@ export default function WhatsAppSettingsPage() {
                 const data = await res.json();
 
                 if (data.qrcode) {
-                    // Garante prefixo base64 para compatibilidade com diferentes versões da Evolution API
                     const qrSrc = data.qrcode.startsWith('data:') ? data.qrcode : `data:image/png;base64,${data.qrcode}`;
                     setQrCode(qrSrc);
+                    setQrStatus('ready');
                     return;
                 }
 
                 if (data.status === 'connected') {
-                    toast.success("WhatsApp conectado com sucesso!");
-                    isQrDialogOpenRef.current = false;
-                    setIsQrDialogOpen(false);
+                    // Mostra estado "já conectado" no dialog em vez de fechar automaticamente
+                    setQrStatus('connected');
+                    setConnectedPhone(data.phone || null);
                     fetchChannels();
                     return;
                 }
 
-                // QR ainda não disponível, tenta novamente em 3 segundos
+                if (data.status === 'error') {
+                    setQrStatus('error');
+                    return;
+                }
+
+                // Ainda preparando — continua polling
                 setTimeout(pollQr, 3000);
             } catch (error) {
                 console.error("Erro no polling do QR Code:", error);
@@ -381,26 +389,54 @@ export default function WhatsAppSettingsPage() {
             <Dialog open={isQrDialogOpen} onOpenChange={(open) => { isQrDialogOpenRef.current = open; setIsQrDialogOpen(open); }}>
                 <DialogContent className="sm:max-w-md flex flex-col items-center">
                     <DialogHeader className="w-full text-center">
-                        <DialogTitle>Conectar {selectedChannel?.name}</DialogTitle>
-                        <DialogDescription>Aponte o WhatsApp do seu celular para este código para conectar.</DialogDescription>
+                        <DialogTitle>
+                            {qrStatus === 'connected' ? `✅ ${selectedChannel?.name}` : `Conectar ${selectedChannel?.name}`}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {qrStatus === 'connected'
+                                ? `Número ${connectedPhone ? `+${connectedPhone}` : ''} já está conectado a este canal.`
+                                : qrStatus === 'error'
+                                    ? 'Não foi possível gerar o QR Code. Verifique as configurações.'
+                                    : 'Aponte o WhatsApp do seu celular para este código para conectar.'}
+                        </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-8 bg-white rounded-2xl shadow-inner my-4 flex items-center justify-center min-h-[300px] min-w-[300px]">
-                        {qrCode ? (
+                    <div className="p-8 bg-white rounded-2xl shadow-inner my-4 flex items-center justify-center min-h-[280px] min-w-[280px]">
+                        {qrStatus === 'ready' && qrCode ? (
                             <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
+                        ) : qrStatus === 'connected' ? (
+                            <div className="flex flex-col items-center gap-3 text-emerald-600">
+                                <div className="h-20 w-20 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                    <CheckCircle2 className="h-12 w-12" />
+                                </div>
+                                <p className="text-base font-semibold">Conectado</p>
+                                {connectedPhone && (
+                                    <p className="text-sm text-muted-foreground font-mono">+{connectedPhone}</p>
+                                )}
+                            </div>
+                        ) : qrStatus === 'error' ? (
+                            <div className="flex flex-col items-center gap-3 text-destructive">
+                                <XCircle className="h-16 w-16 opacity-50" />
+                                <p className="text-sm text-center text-muted-foreground">
+                                    Instância não encontrada ou Evolution API indisponível.
+                                </p>
+                            </div>
                         ) : (
                             <div className="flex flex-col items-center gap-4 text-slate-400">
                                 <RefreshCw className="h-10 w-10 animate-spin" />
-                                <p className="text-sm animate-pulse">Gerando código...</p>
+                                <p className="text-sm animate-pulse">Gerando QR Code...</p>
                             </div>
                         )}
                     </div>
 
                     <DialogFooter className="w-full sm:justify-center">
                         <Button variant="outline" onClick={() => loadQrCode(selectedChannel!)} className="gap-2">
-                            <RefreshCw className="h-4 w-4" /> Recarregar
+                            <RefreshCw className="h-4 w-4" />
+                            {qrStatus === 'connected' ? 'Reconectar' : 'Recarregar'}
                         </Button>
-                        <Button onClick={() => setIsQrDialogOpen(false)} className="px-8">Concluído</Button>
+                        <Button onClick={() => { isQrDialogOpenRef.current = false; setIsQrDialogOpen(false); }} className="px-8">
+                            Fechar
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
