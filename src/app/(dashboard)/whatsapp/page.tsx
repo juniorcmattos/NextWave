@@ -14,6 +14,22 @@ import Link from "next/link";
 export default function WhatsAppDashboard() {
     const [status, setStatus] = useState<"connected" | "disconnected" | "connecting">("disconnected");
 
+    useEffect(() => {
+        const checkStatus = async () => {
+            try {
+                const res = await fetch("/api/whatsapp/channels");
+                if (!res.ok) return;
+                const channels: any[] = await res.json();
+                const hasOpen = channels.some((c: any) => c.isActive && (c.status === "open" || c.status === "connected"));
+                const hasConnecting = channels.some((c: any) => c.isActive && c.status === "connecting");
+                setStatus(hasOpen ? "connected" : hasConnecting ? "connecting" : "disconnected");
+            } catch {}
+        };
+        checkStatus();
+        const interval = setInterval(checkStatus, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -25,9 +41,14 @@ export default function WhatsAppDashboard() {
                     <p className="text-muted-foreground">Gerencie suas comunicações e automações de atendimento.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Badge variant={status === "connected" ? "success" : "destructive"} className="h-6">
+                    <Badge
+                        variant={status === "connected" ? "success" : status === "connecting" ? "warning" : "destructive"}
+                        className="h-6"
+                    >
                         {status === "connected" ? (
                             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Conectado</span>
+                        ) : status === "connecting" ? (
+                            <span className="flex items-center gap-1.5"><RefreshCw className="h-3 w-3 animate-spin" /> Conectando</span>
                         ) : (
                             <span className="flex items-center gap-1.5"><XCircle className="h-3 w-3" /> Desconectado</span>
                         )}

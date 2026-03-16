@@ -83,9 +83,9 @@ export async function GET(
             const data = await connectRes.json();
             console.log(`[QRCODE] Resposta:`, JSON.stringify(data).substring(0, 200));
 
-            // Já conectado — retorna status específico (não fecha o dialog automaticamente)
+            // Já conectado — atualiza DB e retorna status
             if (data?.instance?.state === 'open' || data?.state === 'open') {
-                // Busca número conectado se disponível
+                // Busca número conectado
                 const infoRes = await fetch(`${apiUrl}/instance/fetchInstances`, { headers }).catch(() => null);
                 let phone: string | null = null;
                 if (infoRes?.ok) {
@@ -93,7 +93,22 @@ export async function GET(
                     const inst = instances.find((i: any) => i.name === channel.instanceName);
                     phone = inst?.ownerJid?.split('@')[0] ?? null;
                 }
+                // Sincroniza status no banco
+                await prisma.$executeRawUnsafe(
+                    `UPDATE "WhatsAppChannel" SET "status" = 'open', "updatedAt" = ? WHERE "id" = ?`,
+                    new Date().toISOString(),
+                    channel.id
+                ).catch(() => null);
                 return NextResponse.json({ qrcode: null, status: 'connected', phone });
+            }
+
+            // QR lido mas ainda conectando — atualiza status para "connecting"
+            if (data?.instance?.state === 'connecting' || data?.state === 'connecting') {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE "WhatsAppChannel" SET "status" = 'connecting', "updatedAt" = ? WHERE "id" = ?`,
+                    new Date().toISOString(),
+                    channel.id
+                ).catch(() => null);
             }
 
             // QR code disponível
