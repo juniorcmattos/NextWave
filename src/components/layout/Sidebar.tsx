@@ -19,7 +19,6 @@ const dashboardSubItems = [
   { href: "/financeiro", label: "Financeiro", module: "financeiro" },
   { href: "/dashboard/clientes", label: "Clientes", module: "clientes" },
   { href: "/dashboard/whatsapp", label: "WhatsApp", module: "whatsapp" },
-  { href: "/dashboard/servicos", label: "Serviços", module: "servicos" },
   { href: "/dashboard/pbx", label: "Telefonia", module: "pbx" },
 ];
 
@@ -38,7 +37,6 @@ const navItems: NavItem[] = [
   { href: "/clientes", label: "Clientes", icon: Users, module: "clientes" },
   { href: "/usuarios", label: "Usuários", icon: Users },
   { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
-  { href: "/servicos", label: "Serviços", icon: Briefcase, module: "servicos" },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/agenda", label: "Agenda", icon: Calendar, module: "agenda" },
   { href: "/whatsapp", label: "WhatsApp", icon: MessageSquare, module: "whatsapp" },

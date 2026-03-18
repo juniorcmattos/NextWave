@@ -30,7 +30,6 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where: any = {
-      userId: session.user.id,
       ...(search && {
         OR: [
           { name: { contains: search } },
@@ -39,7 +38,6 @@ export async function GET(request: Request) {
           { company: { contains: search } },
           { document: { contains: search } },
           { address: { contains: search } },
-          // Busca por ID numérico se o termo for número
           ...(!isNaN(parseInt(search)) ? [{ registrationId: parseInt(search) }] : []),
         ],
       }),
@@ -51,6 +49,7 @@ export async function GET(request: Request) {
         where,
         include: {
           _count: { select: { transactions: true, services: true } },
+          user: { select: { name: true } }
         },
         orderBy: { name: "asc" },
         skip,
@@ -74,9 +73,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = clienteSchema.parse(body);
 
-    // Gerar próximo registrationId
+    // Gerar próximo registrationId global
     const lastClient = await prisma.client.findFirst({
-      where: { userId: session.user.id },
       orderBy: { registrationId: "desc" },
     });
     const nextId = (lastClient?.registrationId ?? 0) + 1;
@@ -84,7 +82,7 @@ export async function POST(request: Request) {
     const cliente = await prisma.client.create({
       data: { 
         ...data, 
-        userId: session.user.id,
+        userId: session.user.id, // Mantemos quem criou, mas não filtramos por ele
         registrationId: nextId 
       },
     });

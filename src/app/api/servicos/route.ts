@@ -31,7 +31,6 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where = {
-      userId: session.user.id,
       ...(search && {
         OR: [
           { title: { contains: search } },

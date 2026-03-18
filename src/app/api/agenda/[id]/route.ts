@@ -25,7 +25,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const data = updateSchema.parse(body);
 
     const event = await prisma.event.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
     });
 
     if (!event) return NextResponse.json({ error: "Evento não encontrado" }, { status: 404 });
@@ -69,7 +69,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const event = await prisma.event.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
     });
 
     if (!event) return NextResponse.json({ error: "Evento não encontrado" }, { status: 404 });

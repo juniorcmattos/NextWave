@@ -13,8 +13,7 @@ export async function GET(
     try {
         const project = await prisma.project.findFirst({
             where: {
-                id: params.id,
-                userId: session.user?.id
+                id: params.id
             },
             include: {
                 columns: {
@@ -48,8 +47,7 @@ export async function PATCH(
 
         const project = await prisma.project.update({
             where: {
-                id: params.id,
-                userId: session.user?.id!
+                id: params.id
             },
             data: {
                 name,
@@ -83,7 +81,7 @@ export async function DELETE(
 
     try {
         const project = await prisma.project.findFirst({
-            where: { id: params.id, userId: session.user?.id }
+            where: { id: params.id }
         });
 
         if (project) {
@@ -98,8 +96,7 @@ export async function DELETE(
 
         await prisma.project.delete({
             where: {
-                id: params.id,
-                userId: session.user?.id!
+                id: params.id
             }
         });
 

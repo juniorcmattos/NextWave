@@ -29,7 +29,6 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where = {
-      userId: session.user.id,
       ...(search && {
         OR: [
           { description: { contains: search } },
@@ -51,7 +50,6 @@ export async function GET(request: Request) {
       prisma.transaction.count({ where }),
       prisma.transaction.groupBy({
         by: ["type", "status"],
-        where: { userId: session.user.id },
         _sum: { amount: true },
       }),
     ]);

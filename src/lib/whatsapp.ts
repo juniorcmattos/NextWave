@@ -111,24 +111,55 @@ export async function getWhatsAppMessages(phone: string) {
         if (!config || !instance) return localMessages;
 
         // Tenta buscar histórico na Evolution API
+        // Nota: o filtro por key.remoteJid causa 500 na Evolution API 2.2.3,
+        // então buscamos as últimas 100 mensagens e filtramos no cliente.
         let apiMessages: any[] = [];
         try {
             const url = `${config.apiUrl}/chat/findMessages/${instance}`;
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "apikey": config.apiKey },
-                body: JSON.stringify({ where: { key: { remoteJid } }, limit: 50 }),
+                body: JSON.stringify({ where: {}, limit: 100 }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                const raw = Array.isArray(data) ? data : data.messages ?? [];
-                apiMessages = raw.map((msg: any) => ({
+                const records: any[] = data.messages?.records ?? (Array.isArray(data) ? data : []);
+                // Filtra apenas mensagens do contato específico
+                const filtered = records.filter(
+                    (msg: any) => msg.key?.remoteJid === remoteJid
+                );
+
+                // Persiste mensagens novas no wa_messages (substitui webhook para recebidas)
+                const knownLocalIds = new Set(localMessages.map((m: any) => m.id));
+                for (const msg of filtered) {
+                    const msgId = msg.key?.id;
+                    if (!msgId || knownLocalIds.has(msgId)) continue;
+                    const bodyText =
+                        msg.message?.conversation ||
+                        msg.message?.extendedTextMessage?.text ||
+                        msg.message?.imageMessage?.caption ||
+                        msg.message?.videoMessage?.caption ||
+                        "[mídia]";
+                    await saveWaMessage({
+                        id: msgId,
+                        instanceName: instance,
+                        remoteJid,
+                        messageId: msgId,
+                        body: bodyText,
+                        fromMe: msg.key?.fromMe ?? false,
+                        status: msg.key?.fromMe ? "SENT" : "RECEIVED",
+                        timestamp: msg.messageTimestamp ? Number(msg.messageTimestamp) : Math.floor(Date.now() / 1000),
+                    }).catch(() => null);
+                }
+
+                apiMessages = filtered.map((msg: any) => ({
                     id: msg.key?.id || String(Date.now()),
                     body:
                         msg.message?.conversation ||
                         msg.message?.extendedTextMessage?.text ||
                         msg.message?.imageMessage?.caption ||
+                        msg.message?.videoMessage?.caption ||
                         "[mídia]",
                     fromMe: msg.key?.fromMe ?? false,
                     time: msg.messageTimestamp
@@ -158,39 +189,108 @@ export async function getWhatsAppMessages(phone: string) {
 
 export async function getWhatsAppChats() {
     try {
-        const config = await getActiveConfig();
-        if (!config) return [];
-
         const instance = await getActiveInstance();
-        if (!instance) return [];
 
-        const url = `${config.apiUrl}/chat/findMany/${instance}`;
+        // Busca conversas salvas localmente no wa_messages
+        let localChats: any[] = [];
+        if (instance) {
+            const lastMsgs: any[] = await prisma.$queryRawUnsafe(
+                `SELECT w1.remote_jid, w1.body, w1.timestamp, w1.from_me
+                 FROM wa_messages w1
+                 WHERE w1.instance_name = ?
+                   AND w1.timestamp = (
+                       SELECT MAX(w2.timestamp) FROM wa_messages w2
+                       WHERE w2.instance_name = w1.instance_name
+                         AND w2.remote_jid = w1.remote_jid
+                   )
+                 ORDER BY w1.timestamp DESC`,
+                instance
+            );
+            localChats = lastMsgs
+                .filter((r: any) => !r.remote_jid.includes("@g.us"))
+                .map((r: any) => ({
+                    id: r.remote_jid,
+                    phone: r.remote_jid.split("@")[0],
+                    customerName: null,
+                    lastMessage: r.body || "",
+                    time: new Date(Number(r.timestamp) * 1000).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                    unread: 0,
+                    _timestamp: Number(r.timestamp),
+                }));
+        }
 
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "apikey": config.apiKey },
-            body: JSON.stringify({ where: {} }),
-        });
+        // Tenta buscar chats da Evolution API
+        let apiChats: any[] = [];
+        const config = await getActiveConfig();
+        if (config && instance) {
+            try {
+                const url = `${config.apiUrl}/chat/findMany/${instance}`;
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "apikey": config.apiKey },
+                    body: JSON.stringify({ where: {} }),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    apiChats = (Array.isArray(data) ? data : [])
+                        .filter((chat: any) => chat.remoteJid && !chat.remoteJid.includes("@g.us"))
+                        .map((chat: any) => ({
+                            id: chat.remoteJid,
+                            phone: chat.remoteJid.split("@")[0],
+                            customerName: chat.pushName || chat.name || null,
+                            lastMessage:
+                                chat.lastMessage?.message?.conversation ||
+                                chat.lastMessage?.message?.extendedTextMessage?.text ||
+                                "",
+                            time: chat.updatedAt
+                                ? new Date(chat.updatedAt).toLocaleTimeString("pt-BR", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                  })
+                                : "Agora",
+                            unread: chat.unreadMessages || 0,
+                            _timestamp: chat.updatedAt ? new Date(chat.updatedAt).getTime() / 1000 : 0,
+                        }));
+                }
+            } catch {
+                // Evolution API indisponível — usa apenas locais
+            }
+        }
 
-        if (!response.ok) return [];
+        // Mescla: API tem prioridade (sobrescreve locais com mesmo remoteJid)
+        const apiIds = new Set(apiChats.map((c: any) => c.id));
+        const onlyLocal = localChats.filter((c: any) => !apiIds.has(c.id));
+        const merged = [...apiChats, ...onlyLocal];
+        merged.sort((a: any, b: any) => (b._timestamp || 0) - (a._timestamp || 0));
 
-        const data = await response.json();
+        // Enriquece com nomes do CRM (busca em lote por telefone)
+        const phones = merged.map((c: any) => c.phone as string).filter(Boolean);
+        if (phones.length > 0) {
+            try {
+                const clients: any[] = await prisma.$queryRawUnsafe(
+                    `SELECT name, phone FROM "Client" WHERE phone IS NOT NULL`
+                );
+                // Mapa: últimos 11 dígitos → nome (para tolerar variações de código de país)
+                const phoneMap = new Map<string, string>();
+                for (const cl of clients) {
+                    const digits = String(cl.phone).replace(/\D/g, "");
+                    if (digits.length >= 8) phoneMap.set(digits.slice(-11), cl.name);
+                }
+                for (const chat of merged) {
+                    const digits = String(chat.phone).replace(/\D/g, "");
+                    const key = digits.slice(-11);
+                    const crmName = phoneMap.get(key);
+                    if (crmName) chat.customerName = crmName;
+                }
+            } catch {
+                // Ignora erros de lookup — exibe nome do WhatsApp como fallback
+            }
+        }
 
-        return (Array.isArray(data) ? data : [])
-            .filter((chat: any) => chat.remoteJid && !chat.remoteJid.includes("@g.us")) // exclui grupos
-            .map((chat: any) => ({
-                id: chat.remoteJid,
-                phone: chat.remoteJid.split("@")[0],
-                customerName: chat.pushName || chat.name || null,
-                lastMessage:
-                    chat.lastMessage?.message?.conversation ||
-                    chat.lastMessage?.message?.extendedTextMessage?.text ||
-                    "",
-                time: chat.updatedAt
-                    ? new Date(chat.updatedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-                    : "Agora",
-                unread: chat.unreadMessages || 0,
-            }));
+        return merged.map(({ _timestamp, ...rest }: any) => rest);
     } catch (error) {
         console.error("[WHATSAPP_GET_CHATS_ERROR]", error);
         return [];

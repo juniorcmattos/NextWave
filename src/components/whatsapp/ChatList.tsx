@@ -49,8 +49,8 @@ export function ChatList({ onSelect, selectedId }: ChatListProps) {
     useEffect(() => {
         fetchChats();
         
-        // Atualizar lista a cada 30 segundos
-        const interval = setInterval(fetchChats, 30000);
+        // Atualizar lista a cada 10 segundos
+        const interval = setInterval(fetchChats, 10000);
         return () => clearInterval(interval);
     }, []);
 

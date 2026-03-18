@@ -77,20 +77,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async session({ session, token }) {
         if (session.user) {
           try {
-            // Verificar se a sessão ainda é válida (Single Device Access)
-            const user = await prisma.user.findUnique({
-              where: { id: token.id as string },
-              select: { currentSessionId: true }
-            });
+            // No Edge Runtime (como no Middleware), o Prisma não pode invocar o banco sem Accelerate/Driver
+            if (process.env.NEXT_RUNTIME !== 'edge') {
+              // Verificar se a sessão ainda é válida (Single Device Access)
+              const user = await prisma.user.findUnique({
+                where: { id: token.id as string },
+                select: { currentSessionId: true }
+              });
 
-            // Se o usuário não existir ou o sessionId for diferente, invalida
-            // Permitimos se currentSessionId for nulo (primeiro acesso após migração)
-            if (user && user.currentSessionId && token.sessionId && user.currentSessionId !== (token.sessionId as string)) {
-              console.log(`[AUTH] Sessão inválida para ${session.user.email}. Outro dispositivo logou.`);
-              return {
-                ...session,
-                user: { ...session.user, id: "INVALID" } 
-              } as any;
+              // Se o usuário não existir ou o sessionId for diferente, invalida
+              // Permitimos se currentSessionId for nulo (primeiro acesso após migração)
+              if (user && user.currentSessionId && token.sessionId && user.currentSessionId !== (token.sessionId as string)) {
+                console.log(`[AUTH] Sessão inválida para ${session.user.email}. Outro dispositivo logou.`);
+                return {
+                  ...session,
+                  user: { ...session.user, id: "INVALID" } 
+                } as any;
+              }
             }
           } catch (e) {
             // Se der erro (ex: coluna não existe ainda), deixamos passar para não travar o sistema

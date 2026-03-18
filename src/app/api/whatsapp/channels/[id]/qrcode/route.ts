@@ -99,6 +99,23 @@ export async function GET(
                     new Date().toISOString(),
                     channel.id
                 ).catch(() => null);
+
+                // Configura webhook na Evolution API para receber mensagens em tempo real
+                const webhookUrl = `http://nextwave-crm:3000/api/whatsapp/webhook`;
+                await fetch(`${apiUrl}/webhook/set/${channel.instanceName}`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        webhook: {
+                            enabled: true,
+                            url: webhookUrl,
+                            webhookByEvents: false,
+                            webhookBase64: false,
+                            events: ["MESSAGES_UPSERT", "MESSAGES_UPDATE", "CONNECTION_UPDATE"],
+                        }
+                    })
+                }).catch((e) => console.warn('[QRCODE] Falha ao configurar webhook:', e.message));
+
                 return NextResponse.json({ qrcode: null, status: 'connected', phone });
             }
 

@@ -11,10 +11,42 @@ export async function GET() {
     }
 
     try {
-        // Usando Raw SQL para contornar o Prisma Client desatualizado no Windows
-        const channels = await prisma.$queryRawUnsafe(
+        const channels: any[] = await prisma.$queryRawUnsafe(
             `SELECT * FROM "WhatsAppChannel" ORDER BY "updatedAt" DESC`
         );
+
+        // Registra webhook para canais conectados (em background, não bloqueia resposta)
+        const openChannels = channels.filter((c: any) => c.isActive && c.status === 'open');
+        if (openChannels.length > 0) {
+            const configs: any[] = await prisma.$queryRawUnsafe(
+                `SELECT * FROM "WhatsAppConfig" WHERE "id" = 'default' LIMIT 1`
+            );
+            const config = configs[0];
+            if (config?.apiUrl && config?.globalApiKey) {
+                const apiUrl = (config.apiUrl.includes('localhost') || config.apiUrl.includes('127.0.0.1'))
+                    ? 'http://evolution-api:8081'
+                    : config.apiUrl;
+                const headers = { 'apikey': config.globalApiKey, 'Content-Type': 'application/json' };
+                const webhookUrl = 'http://nextwave-crm:3000/api/whatsapp/webhook';
+
+                for (const ch of openChannels) {
+                    fetch(`${apiUrl}/webhook/set/${ch.instanceName}`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({
+                            webhook: {
+                                enabled: true,
+                                url: webhookUrl,
+                                webhookByEvents: false,
+                                webhookBase64: false,
+                                events: ["MESSAGES_UPSERT", "MESSAGES_UPDATE", "CONNECTION_UPDATE"],
+                            }
+                        })
+                    }).catch(() => null);
+                }
+            }
+        }
+
         return NextResponse.json(channels);
     } catch (error) {
         console.error("[WHATSAPP_CHANNELS_GET]", error);

@@ -46,7 +46,7 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
         }
     };
 
-    // Polling — faz merge: adiciona novas sem remover as existentes (inclusive otimistas)
+    // Polling — faz merge aditivo: nunca remove mensagens confirmadas do estado
     const mergeMessages = async (phone: string) => {
         try {
             const res = await fetch(`/api/whatsapp/messages?phone=${phone}`);
@@ -54,16 +54,29 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
             const data = await res.json();
             const incoming: Message[] = data.messages || [];
 
+            // Se o servidor não retornou nada, preserva o estado atual (evita apagar mensagens)
+            if (incoming.length === 0) return;
+
             setMessages((prev) => {
                 const incomingIds = new Set(incoming.map((m) => m.id));
-                // Mantém mensagens otimistas/com erro que o servidor ainda não confirmou
-                const pendingLocal = prev.filter(
-                    (m) =>
-                        (m.id.startsWith("opt-") || m.status === "error") &&
-                        !incoming.some((im) => im.fromMe && im.body === m.body)
+
+                // Remove otimistas que já foram confirmados pelo servidor (mesmo corpo, fromMe)
+                const resolvedOptIds = new Set<string>();
+                incoming.forEach((serverMsg) => {
+                    if (serverMsg.fromMe) {
+                        const opt = prev.find(
+                            (m) => m.id.startsWith("opt-") && m.body === serverMsg.body
+                        );
+                        if (opt) resolvedOptIds.add(opt.id);
+                    }
+                });
+
+                // Mantém mensagens existentes que não foram substituídas por versões do servidor
+                const kept = prev.filter(
+                    (m) => !incomingIds.has(m.id) && !resolvedOptIds.has(m.id)
                 );
-                // Combina: mensagens do servidor + otimistas ainda não confirmadas
-                const merged = [...incoming, ...pendingLocal];
+
+                const merged = [...kept, ...incoming];
                 merged.sort((a, b) => {
                     const ta = (a as any).timestamp || 0;
                     const tb = (b as any).timestamp || 0;
@@ -82,10 +95,44 @@ export function ChatWindow({ chat, onBack }: { chat: any; onBack?: () => void })
 
         loadMessages(chat.phone);
 
-        // Polling a cada 5s — merge, não substitui
+        // Polling a cada 5s — fallback caso SSE caia
         pollingRef.current = setInterval(() => mergeMessages(chat.phone), 5000);
+
+        // SSE — atualiza imediatamente quando webhook recebe mensagem
+        let lastCount = -1;
+        const es = new EventSource("/api/whatsapp/events");
+        es.onmessage = (e) => {
+            try {
+                const { count } = JSON.parse(e.data);
+                if (lastCount >= 0 && count > lastCount) {
+                    mergeMessages(chat.phone);
+                    // Som de notificação para mensagens recebidas
+                    try {
+                        const ctx = new AudioContext();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.setValueAtTime(880, ctx.currentTime);
+                        osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+                        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.4);
+                    } catch {
+                        // AudioContext não disponível (ex: tab em segundo plano)
+                    }
+                }
+                lastCount = count;
+            } catch {
+                // JSON inválido
+            }
+        };
+        es.onerror = () => es.close(); // Polling cobre o fallback
+
         return () => {
             if (pollingRef.current) clearInterval(pollingRef.current);
+            es.close();
         };
     }, [chat?.phone]);
 

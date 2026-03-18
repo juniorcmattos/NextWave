@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     }
 
     const events = await prisma.event.findMany({
-      where: { userId: session.user.id, ...dateFilter },
+      where: { ...dateFilter },
       orderBy: { startDate: "asc" },
     });
 

@@ -24,7 +24,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const data = updateSchema.parse(body);
 
     const result = await prisma.transaction.updateMany({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
       data: {
         ...data,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
@@ -47,7 +47,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    await prisma.transaction.deleteMany({ where: { id: params.id, userId: session.user.id } });
+    await prisma.transaction.deleteMany({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[FINANCEIRO_DELETE]", error);

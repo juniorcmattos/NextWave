@@ -1,4 +1,7 @@
+"use client";
+
 import { User, Mail, Phone, MapPin, Building2, FileText, QrCode, Save, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +14,8 @@ interface ClientCadastroTabProps {
 }
 
 export function ClientCadastroTab({ client, onSave, onEdit }: ClientCadastroTabProps) {
+  const router = useRouter();
+
   return (
     <div className="grid gap-6">
       <div className="grid md:grid-cols-2 gap-6">
@@ -71,7 +76,7 @@ export function ClientCadastroTab({ client, onSave, onEdit }: ClientCadastroTabP
                         title="Enviar WhatsApp"
                         onClick={() => {
                           const num = client.phone.replace(/\D/g, '');
-                          window.open(`https://wa.me/${num}`, '_blank');
+                          router.push(`/whatsapp/chat?phone=${num}`);
                         }}
                       >
                         <MessageCircle className="h-4 w-4" />

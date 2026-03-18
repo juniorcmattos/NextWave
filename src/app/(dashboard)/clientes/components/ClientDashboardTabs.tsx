@@ -18,7 +18,7 @@ export function ClientDashboardTabs({
 }: ClientDashboardTabsProps) {
   return (
     <Tabs defaultValue="cadastro" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/50 p-1">
+      <TabsList className="mb-6 flex overflow-x-auto no-scrollbar gap-2 sm:gap-6">
         <TabsTrigger value="cadastro" className="gap-2">
           <User className="h-4 w-4" />
           <span className="hidden sm:inline">Cadastro</span>

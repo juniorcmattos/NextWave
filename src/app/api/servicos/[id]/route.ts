@@ -28,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { paymentReceived, paymentMethod, ...serviceData } = data;
 
     const service = await prisma.service.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
       include: { transactions: true }
     });
 
@@ -106,7 +106,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const service = await prisma.service.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
     });
 
     if (service) {
@@ -120,7 +120,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
       });
     }
 
-    await prisma.service.deleteMany({ where: { id: params.id, userId: session.user.id } });
+    await prisma.service.deleteMany({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[SERVICO_DELETE]", error);

@@ -8,9 +8,11 @@ export default auth((req) => {
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
   const isAuthPage = nextUrl.pathname === "/login";
   const isSetupRoute = nextUrl.pathname.startsWith("/setup") || nextUrl.pathname.startsWith("/api/setup");
+  const isWebhook = nextUrl.pathname === "/api/whatsapp/webhook";
+  const isWaEvents = nextUrl.pathname === "/api/whatsapp/events";
 
-  // 1. Permitir sempre rotas de API de autenticação e Setup
-  if (isApiAuthRoute || isSetupRoute) {
+  // 1. Permitir sempre rotas de API de autenticação, Setup, Webhook e SSE
+  if (isApiAuthRoute || isSetupRoute || isWebhook || isWaEvents) {
     return NextResponse.next();
   }
 

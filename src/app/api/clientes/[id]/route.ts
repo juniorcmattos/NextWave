@@ -23,7 +23,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const cliente = await prisma.client.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
       include: {
         transactions: { orderBy: { dueDate: "desc" } },
         services: { orderBy: { createdAt: "desc" } },
@@ -49,7 +49,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const data = updateSchema.parse(body);
 
     const cliente = await prisma.client.updateMany({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
       data,
     });
 
@@ -70,7 +70,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     if (!session?.user?.id) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     await prisma.client.deleteMany({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: params.id },
     });
 
     return NextResponse.json({ success: true });

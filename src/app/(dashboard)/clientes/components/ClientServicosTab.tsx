@@ -7,12 +7,14 @@ interface ClientServicosTabProps {
   services: any[];
   openCreateSvc: () => void;
   formatCurrency: (value: number) => string;
+  onCancelSvc?: (id: string) => void;
 }
 
 export function ClientServicosTab({
   services,
   openCreateSvc,
-  formatCurrency
+  formatCurrency,
+  onCancelSvc
 }: ClientServicosTabProps) {
   return (
     <div className="space-y-6">
@@ -53,7 +55,7 @@ export function ClientServicosTab({
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onCancelSvc && onCancelSvc(svc.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
