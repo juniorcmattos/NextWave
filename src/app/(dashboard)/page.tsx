@@ -86,14 +86,14 @@ async function getDashboardData(userId: string) {
         mes: dataInicio.toLocaleDateString("pt-BR", { month: "short" })
           .replace(".", "")
           .replace(/^\w/, (c) => c.toUpperCase()),
-        receita: r._sum.amount ?? 0,
-        despesa: d._sum.amount ?? 0,
+        receita: Number(r._sum.amount ?? 0),
+        despesa: Number(d._sum.amount ?? 0),
       };
     })
   );
 
-  const receitaAtual = receitaMesAtual._sum.amount ?? 0;
-  const receitaAnterior = receitaMesAnterior._sum.amount ?? 0;
+  const receitaAtual = Number(receitaMesAtual._sum.amount ?? 0);
+  const receitaAnterior = Number(receitaMesAnterior._sum.amount ?? 0);
   const variacaoReceita = receitaAnterior > 0
     ? ((receitaAtual - receitaAnterior) / receitaAnterior) * 100
     : 0;
@@ -105,7 +105,7 @@ async function getDashboardData(userId: string) {
     .map((c: any) => ({
       id: c.id,
       name: c.name,
-      totalReceita: c.transactions.reduce((sum: number, t: any) => sum + t.amount, 0),
+      totalReceita: c.transactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0),
       totalServicos: c.services.length,
     }))
     .sort((a: any, b: any) => b.totalReceita - a.totalReceita)
@@ -114,8 +114,8 @@ async function getDashboardData(userId: string) {
   return {
     stats: {
       totalReceita: receitaAtual,
-      totalPendente: pendente._sum.amount ?? 0,
-      totalCancelado: cancelado._sum.amount ?? 0,
+      totalPendente: Number(pendente._sum.amount ?? 0),
+      totalCancelado: Number(cancelado._sum.amount ?? 0),
       totalClientes,
       totalServicos,
       variacaoReceita,
@@ -123,7 +123,10 @@ async function getDashboardData(userId: string) {
     },
     chartData,
     topClientes,
-    ultimasTransacoes,
+    ultimasTransacoes: ultimasTransacoes.map((t: any) => ({
+      ...t,
+      amount: Number(t.amount)
+    })),
     activeModules: modulesStatus.filter((m: any) => m.enabled).map((m: any) => m.key),
     whatsAppStats: {
       totalMessages: totalWhatsAppMessages,
