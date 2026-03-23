@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, Download, FileText, Calendar, User, Printer, Send, Loader2 } from "lucide-react";
+import { Check, X, Download, FileText, Calendar, User, Printer, Send, Loader2, CheckCircle2, PenTool } from "lucide-react";
 import { toast } from "sonner";
 
 export function QuotePublicView({ quote }: { quote: any }) {
@@ -137,11 +137,10 @@ export function QuotePublicView({ quote }: { quote: any }) {
                                 <h4 className="font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Aprovado!</h4>
                                 <p className="text-sm text-emerald-600/80">Este orçamento foi aprovado.</p>
                             </div>
-                            <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold h-12" onClick={() => {
-                                // Redirect to contract if it exists. Simplified: just point to a likely ID or show a message
-                                toast.info("Um contrato foi gerado. Verifique seu e-mail.");
+                            <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white gap-3 font-black h-14 shadow-xl" onClick={() => {
+                                window.location.href = `/public/contratos/${quote.id}`;
                             }}>
-                                <FileText className="h-4 w-4" /> Ver Contrato
+                                <PenTool className="h-5 w-5" /> ASSINAR CONTRATO
                             </Button>
                         </div>
                     ) : null}

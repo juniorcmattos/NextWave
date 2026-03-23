@@ -3,8 +3,13 @@ import { ContractPublicView } from "@/components/contracts/ContractPublicView";
 import { notFound } from "next/navigation";
 
 export default async function PublicContractPage({ params }: { params: { id: string } }) {
-    const contract = await prisma.contract.findUnique({
-        where: { id: params.id },
+    const contract = await prisma.contract.findFirst({
+        where: {
+            OR: [
+                { id: params.id },
+                { quoteId: params.id }
+            ]
+        },
         include: {
             client: true,
             quote: true,

@@ -15,6 +15,7 @@ export function ContractPublicView({ contract }: { contract: any }) {
     const [status, setStatus] = useState(contract.status);
     const [name, setName] = useState("");
     const [accepted, setAccepted] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
     const handleSign = async () => {
         if (!name.trim() || !accepted) return;
@@ -25,9 +26,16 @@ export function ContractPublicView({ contract }: { contract: any }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ signatureName: name }),
             });
-            if (!res.ok) throw new Error();
+            const data = await res.json();
             setStatus("assinado");
+            setPaymentUrl(data.paymentUrl || null);
             toast.success("Contrato assinado digitalmente!");
+            
+            if (data.paymentUrl) {
+                setTimeout(() => {
+                    window.location.href = data.paymentUrl;
+                }, 2000);
+            }
         } catch {
             toast.error("Erro ao assinar contrato");
         } finally {
@@ -130,6 +138,16 @@ export function ContractPublicView({ contract }: { contract: any }) {
                         <h2 className="text-4xl font-black uppercase tracking-tighter">Documento Assinado</h2>
                         <p className="text-white/80 font-bold mt-2">Obrigado pela confiança! Seu contrato foi processado e validado.</p>
                     </div>
+
+                    {paymentUrl && (
+                        <div className="bg-white/20 backdrop-blur-md p-6 rounded-2xl border border-white/30 animate-pulse">
+                            <p className="font-black text-sm uppercase tracking-widest mb-2">Redirecionando para pagamento...</p>
+                            <Button className="w-full bg-white text-emerald-600 hover:bg-slate-100 font-black h-12" onClick={() => window.location.href = paymentUrl}>
+                                PAGAR AGORA
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="pt-6 grid grid-cols-2 gap-4 max-w-sm mx-auto">
                         <div className="text-left bg-white/10 p-4 rounded-xl">
                             <p className="text-[10px] font-black uppercase opacity-60">Assinado em</p>
