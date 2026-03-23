@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, ShieldCheck, FileText, Download, Loader2, PenTool } from "lucide-react";
 import { toast } from "sonner";
 
