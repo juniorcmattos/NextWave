@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     const transaction = service.transactions[0];
     const updateTitle = serviceData.title ?? service.title;
-    const updateAmount = serviceData.amount ?? service.amount;
+    const updateAmount = Number(serviceData.amount ?? service.amount);
     const clientUpdate = serviceData.clientId === null ? undefined : (serviceData.clientId || service.clientId);
 
     const updateDueDate = serviceData.dueDate ? new Date(serviceData.dueDate) : ((service as any).dueDate as Date | null);
