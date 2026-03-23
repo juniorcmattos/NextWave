@@ -7,10 +7,11 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ColorProvider } from "@/components/providers/ColorProvider";
 import { Toaster } from "sonner";
 import { Softphone } from "@/components/pbx/softphone";
+import { Outfit } from "next/font/google";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
-// Removendo Google Fonts para evitar timeouts no build Docker ARM64
-// const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding();
@@ -114,7 +115,7 @@ export default async function RootLayout({
       data-color={initialColor}
       data-layout={initialLayout}
     >
-      <body className="antialiased">
+      <body className={cn("antialiased", outfit.className)}>
         <SessionProvider>
           <ThemeProvider
             attribute="class"

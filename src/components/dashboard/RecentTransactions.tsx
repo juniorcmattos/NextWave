@@ -20,10 +20,10 @@ function getStatusVariant(status: string): "success" | "warning" | "destructive"
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-base font-semibold">Últimas Transações</CardTitle>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+    <Card className="premium-card glass border-none overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between pb-6 pt-8 px-8">
+        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">Últimas Transações</CardTitle>
+        <Button variant="ghost" size="sm" className="h-8 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 rounded-xl px-4" asChild>
           <Link href="/financeiro">Ver todas</Link>
         </Button>
       </CardHeader>
@@ -35,29 +35,29 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
         ) : (
           <div className="divide-y divide-border">
             {transactions.map((tx) => (
-              <div key={tx.id} className="flex items-center gap-4 px-6 py-3 hover:bg-muted/30 transition-colors">
+              <div key={tx.id} className="flex items-center gap-4 px-8 py-4 hover:bg-primary/[0.02] transition-colors group">
                 <div className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-black shadow-sm group-hover:scale-110 transition-transform",
                   tx.type === "receita"
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                    : "bg-rose-500/10 text-rose-600 border border-rose-500/20"
                 )}>
                   {tx.type === "receita" ? "+" : "-"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{tx.description}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {tx.client?.name ?? tx.category} • {formatDate(tx.createdAt)}
+                  <p className="text-sm font-black tracking-tight text-[#121721] dark:text-white truncate">{tx.description}</p>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground opacity-60">
+                    {tx.client?.name ?? tx.category} <span className="mx-2 opacity-30">•</span> {formatDate(tx.createdAt)}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className={cn(
-                    "text-sm font-semibold",
-                    tx.type === "receita" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                    "text-sm font-black tracking-tight",
+                    tx.type === "receita" ? "text-emerald-600" : "text-rose-600"
                   )}>
                     {tx.type === "receita" ? "+" : "-"}{formatCurrency(tx.amount)}
                   </p>
-                  <Badge variant={getStatusVariant(tx.status)} className="text-[10px] h-4 mt-0.5">
+                  <Badge variant={getStatusVariant(tx.status)} className="text-[8px] font-black uppercase h-4 mt-1 px-1.5 rounded-full border-none">
                     {getStatusLabel(tx.status)}
                   </Badge>
                 </div>

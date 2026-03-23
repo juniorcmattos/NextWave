@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { z } from "zod";
+
+const leadSchema = z.object({
+    name: z.string().min(1, "Nome é obrigatório"),
+    email: z.string().email("E-mail inválido").optional().or(z.literal("")),
+    phone: z.string().optional().or(z.literal("")),
+    source: z.string().optional().or(z.literal("")),
+    value: z.preprocess((val) => Number(val), z.number().default(0)),
+    notes: z.string().optional().or(z.literal("")),
+    status: z.string().default("novo"),
+});
 
 export async function GET() {
     const session = await auth();
@@ -28,21 +39,11 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { name, email, phone, source, value, notes, status } = body;
-
-        if (!name) {
-            return new NextResponse("Name is required", { status: 400 });
-        }
+        const validatedData = leadSchema.parse(body);
 
         const lead = await prisma.lead.create({
             data: {
-                name,
-                email,
-                phone,
-                source,
-                value: parseFloat(value) || 0,
-                notes,
-                status: status || "novo",
+                ...validatedData,
                 userId: session.user.id,
             },
         });

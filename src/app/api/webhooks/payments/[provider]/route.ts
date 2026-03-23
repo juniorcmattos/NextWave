@@ -7,7 +7,8 @@ export async function POST(
     { params }: { params: { provider: string } }
 ) {
     try {
-        const body = await req.json();
+        const rawBody = await req.text();
+        const body = JSON.parse(rawBody);
         console.log(`[PAYMENT_WEBHOOK][${params.provider}] recebido:`, body);
 
         const gateway = await getActivePaymentGateway();
@@ -17,7 +18,7 @@ export async function POST(
             return NextResponse.json({ error: "Gateway inativo" }, { status: 400 });
         }
 
-        const result = await gateway.processWebhook(body);
+        const result = await gateway.processWebhook(body, req.headers, rawBody);
 
         if (result.status === "pago" && result.transactionId) {
             await prisma.transaction.update({

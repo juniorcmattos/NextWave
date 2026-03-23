@@ -58,63 +58,61 @@ type Lead = {
 };
 
 const STAGES = [
-    { id: "novo", title: "Novo", color: "bg-blue-500" },
-    { id: "em_contato", title: "Em Contato", color: "bg-yellow-500" },
-    { id: "qualificado", title: "Qualificado", color: "bg-purple-500" },
-    { id: "proposta", title: "Proposta", color: "bg-orange-500" },
-    { id: "ganho", title: "Ganho", color: "bg-green-500" },
-    { id: "perdido", title: "Perdido", color: "bg-red-500" },
+    { id: "novo", title: "Novo", color: "bg-[#3462EE]" },
+    { id: "em_contato", title: "Em Contato", color: "bg-[#4A91A8]" },
+    { id: "qualificado", title: "Qualificado", color: "bg-[#EFE347]" },
+    { id: "proposta", title: "Proposta", color: "bg-[#121721]" },
+    { id: "ganho", title: "Ganho", color: "bg-emerald-500" },
+    { id: "perdido", title: "Perdido", color: "bg-rose-500" },
 ];
 
 function LeadCard({ lead, onEdit, onDelete }: { lead: Lead; onEdit?: () => void; onDelete?: () => void }) {
     return (
-        <Card className="cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20 transition-all border-none shadow-sm shadow-black/5 bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-4 space-y-3">
+        <Card className="premium-card glass cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20 transition-all border-none shadow-xl shadow-black/5 overflow-hidden group">
+            <CardContent className="p-5 space-y-4">
                 <div className="flex items-start justify-between gap-2">
-                    <p className="font-bold text-sm leading-tight">{lead.name}</p>
+                    <p className="font-black text-sm tracking-tight leading-tight group-hover:text-primary transition-colors">{lead.name}</p>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2 bg-transparent hover:bg-muted">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 bg-transparent hover:bg-primary/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
                                 <MoreVertical className="h-3 w-3" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                            <DropdownMenuLabel>Opções do Lead</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={onEdit} className="gap-2">
-                                <Edit className="h-4 w-4" /> Editar
+                        <DropdownMenuContent align="end" className="w-48 p-2 rounded-2xl glass border-white/20">
+                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground px-2 py-1.5">Ações do Lead</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-white/10" />
+                            <DropdownMenuItem onClick={onEdit} className="gap-2 rounded-xl focus:bg-primary/10 focus:text-primary cursor-pointer mt-1">
+                                <Edit className="h-4 w-4" /> <span className="font-medium">Editar Detalhes</span>
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={onDelete} className="gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                <Trash className="h-4 w-4" /> Excluir
+                            <DropdownMenuItem onClick={onDelete} className="gap-2 rounded-xl text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer mt-1">
+                                <Trash className="h-4 w-4" /> <span className="font-medium">Excluir</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-2">
                     {lead.email && (
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase opacity-60">
                             <Mail className="h-3 w-3" />
                             <span className="truncate">{lead.email}</span>
                         </div>
                     )}
                     {lead.phone && (
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase opacity-60">
                             <Phone className="h-3 w-3" />
                             <span>{lead.phone}</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    <div className="flex items-center gap-1 text-xs font-bold text-primary">
-                        <DollarSign className="h-3 w-3" />
-                        <span>{lead.value?.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-1 text-sm font-black tracking-tighter text-primary">
+                        <span>R$ {Number(lead.value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 uppercase">
+                    <div className="text-[9px] font-black uppercase bg-primary/5 text-primary px-2 py-1 rounded-full border border-primary/10">
                         {lead.source || "Direto"}
-                    </Badge>
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -138,17 +136,22 @@ function SortableLead({ lead, onEdit, onDelete }: { lead: Lead; onEdit?: () => v
 function DroppableStage({ stage, children, count }: { stage: typeof STAGES[0]; children: React.ReactNode; count: number }) {
     const { setNodeRef, isOver } = useDroppable({ id: stage.id });
     return (
-        <div className="flex-shrink-0 w-80 flex flex-col gap-4">
+        <div className="flex-shrink-0 w-80 flex flex-col gap-6 animate-in fade-in duration-500">
             <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-2">
-                    <div className={`h-2 w-2 rounded-full ${stage.color}`} />
-                    <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">{stage.title}</h3>
-                    <Badge variant="outline" className="rounded-full bg-muted/50 border-none">{count}</Badge>
+                <div className="flex items-center gap-3">
+                    <div className={cn("h-3 w-3 rounded-full shadow-lg", stage.color)} />
+                    <h3 className="font-black text-sm uppercase tracking-widest text-[#121721] dark:text-white opacity-80">{stage.title}</h3>
                 </div>
+                <div className="h-6 w-10 flex items-center justify-center font-black text-[10px] bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-full shadow-sm">{count}</div>
             </div>
             <div
                 ref={setNodeRef}
-                className={`flex flex-col gap-3 min-h-[500px] p-2 rounded-xl border-2 border-dashed transition-colors ${isOver ? "border-primary/40 bg-primary/5" : "border-transparent bg-muted/10 hover:border-muted/20"}`}
+                className={cn(
+                    "flex flex-col gap-4 min-h-[600px] p-3 rounded-[2rem] border-2 border-dashed transition-all duration-300",
+                    isOver 
+                        ? "border-primary/40 bg-primary/5 shadow-inner" 
+                        : "border-transparent bg-[#121721]/5 dark:bg-white/5 hover:bg-[#121721]/10 dark:hover:bg-white/10"
+                )}
             >
                 {children}
             </div>

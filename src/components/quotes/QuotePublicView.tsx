@@ -71,7 +71,7 @@ export function QuotePublicView({ quote }: { quote: any }) {
                                                 <p className="font-bold text-slate-800 dark:text-slate-200">{item.description}</p>
                                                 <p className="text-xs text-slate-500">Qtd: {item.quantity}</p>
                                             </div>
-                                            <p className="font-mono font-bold text-lg">R$ {(item.quantity * item.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                                            <p className="font-mono font-bold text-lg">R$ {(Number(item.quantity) * Number(item.price)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -79,7 +79,7 @@ export function QuotePublicView({ quote }: { quote: any }) {
 
                             <div className="flex flex-col items-end pt-6">
                                 <p className="text-xs font-black uppercase text-slate-400 tracking-widest">Valor Total</p>
-                                <p className="text-5xl font-black text-primary">R$ {quote.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                                <p className="text-5xl font-black text-primary">R$ {Number(quote.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                             </div>
                         </CardContent>
                     </Card>

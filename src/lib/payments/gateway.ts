@@ -31,5 +31,5 @@ export abstract class PaymentGateway {
     constructor(protected config: any) { }
 
     abstract createCheckout(options: CheckoutOptions): Promise<CheckoutResponse>;
-    abstract processWebhook(body: any): Promise<{ transactionId: string; status: string }>;
+    abstract processWebhook(body: any, headers?: Headers, rawBody?: string): Promise<{ transactionId: string; status: string }>;
 }

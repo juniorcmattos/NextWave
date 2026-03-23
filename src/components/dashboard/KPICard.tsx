@@ -30,36 +30,40 @@ export function KPICard({
   const isPositive = change !== undefined && change >= 0;
 
   return (
-    <Card className="hover-lift">
-      <CardContent className="p-6">
+    <Card className="premium-card glass overflow-hidden border-none transition-all duration-500 hover:scale-[1.02]">
+      <CardContent className="p-8">
         <div className="flex items-start justify-between">
-          <div className="space-y-2 flex-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tracking-tight text-foreground">
-              {formattedValue}
-            </p>
-            {description && (
-              <p className="text-xs text-muted-foreground">{description}</p>
-            )}
+          <div className="space-y-4 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">{title}</p>
+            <div className="space-y-1">
+                <p className="text-4xl font-black tracking-tighter text-[#121721] dark:text-white">
+                {formattedValue}
+                </p>
+                {description && (
+                <p className="text-xs text-muted-foreground font-medium">{description}</p>
+                )}
+            </div>
             {change !== undefined && (
               <div className={cn(
-                "flex items-center gap-1 text-xs font-medium",
-                isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                "inline-flex items-center gap-1.5 text-[10px] font-black uppercase px-3 py-1 rounded-full",
+                isPositive 
+                    ? "text-emerald-600 bg-emerald-500/10" 
+                    : "text-rose-600 bg-rose-500/10"
               )}>
                 {isPositive ? (
                   <TrendingUp className="h-3 w-3" />
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                <span>{isPositive ? "+" : ""}{change.toFixed(1)}% este mês</span>
+                <span>{isPositive ? "+" : ""}{change.toFixed(1)}% <span className="opacity-60">vs last month</span></span>
               </div>
             )}
           </div>
           <div className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
+            "flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.5rem] shadow-lg transition-transform duration-500 group-hover:rotate-12",
             iconBg
           )}>
-            <Icon className={cn("h-6 w-6", iconColor)} />
+            <Icon className={cn("h-8 w-8", iconColor)} />
           </div>
         </div>
       </CardContent>

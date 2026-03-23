@@ -8,40 +8,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// SQLite preview schema - Enums converted to String
 model User {
-  id               String         @id @default(cuid())
-  name             String
-  email            String         @unique
-  password         String
-  avatar           String?
-  role             String         @default("admin")
-  branchId         String?
-  branch           Branch?        @relation(fields: [branchId], references: [id])
-  allowedIps       String?
-  workDayStart     String?
-  workDayEnd       String?
-  twoFactorSecret  String?
-  twoFactorEnabled Boolean        @default(false)
-  accentColor      String         @default("blue")
-  layoutTheme      String         @default("default")
-  currentSessionId String?
-  notifyEmail      Boolean        @default(true)
-  notifyPush       Boolean        @default(false)
-  notifyDue        Boolean        @default(true)
+  id                 String         @id @default(cuid())
+  name               String
+  email              String         @unique
+  password           String
+  avatar             String?
+  role               String         @default("admin")
+  branchId           String?
+  branch             Branch?        @relation(fields: [branchId], references: [id])
+  allowedIps         String?
+  workDayStart       String?
+  workDayEnd         String?
+  twoFactorSecret    String?
+  twoFactorEnabled   Boolean        @default(false)
+  accentColor        String         @default("blue")
+  layoutTheme        String         @default("default")
+  currentSessionId   String?
+  notifyEmail        Boolean        @default(true)
+  notifyPush         Boolean        @default(false)
+  notifyDue          Boolean        @default(true)
   googleAccessToken  String?
   googleRefreshToken String?
   googleTokenExpiry  DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  callLogs         CallLog[]
-  clients          Client[]
-  events           Event[]
-  projects         Project[]
-  services         Service[]
-  subscriptions    Subscription[]
-  transactions     Transaction[]
-  leads            Lead[]
-  quotes           Quote[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  callLogs           CallLog[]
+  clients            Client[]
+  events             Event[]
+  projects           Project[]
+  services           Service[]
+  subscriptions      Subscription[]
+  transactions       Transaction[]
+  leads              Lead[]
+  quotes             Quote[]
+  @@map("users")
 }
 
 model Client {
@@ -73,30 +75,30 @@ model Client {
 }
 
 model Branch {
-  id          String   @id @default(cuid())
-  name        String
-  cnpj        String?
-  address     String?
-  phone       String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  users       User[]
-  clients     Client[]
+  id        String   @id @default(cuid())
+  name      String
+  cnpj      String?
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  clients   Client[]
 }
 
 model Transaction {
-  id              String    @id @default(cuid())
+  id              String            @id @default(cuid())
   description     String
-  amount          Float
+  amount          Decimal           
   type            String
   category        String
-  status          String    @default("pendente")
+  status          String            @default("pendente")
   dueDate         DateTime?
   paidAt          DateTime?
   notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   gatewayProvider String?
   gatewayId       String?
   paymentUrl      String?
@@ -104,16 +106,16 @@ model Transaction {
   userId          String
   clientId        String?
   serviceId       String?
-  service         Service?  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  client          Client?   @relation(fields: [clientId], references: [id])
-  user            User      @relation(fields: [userId], references: [id])
+  service         Service?          @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  client          Client?           @relation(fields: [clientId], references: [id])
+  user            User              @relation(fields: [userId], references: [id])
 }
 
 model Service {
   id               String        @id @default(cuid())
   title            String
   description      String?
-  amount           Float
+  amount           Decimal       
   status           String        @default("rascunho")
   category         String?
   dueDate          DateTime?
@@ -130,42 +132,42 @@ model Service {
 }
 
 model Event {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  startDate   DateTime
-  endDate     DateTime?
-  allDay      Boolean   @default(false)
-  type        String    @default("reuniao")
-  status      String    @default("agendado")
-  location    String?
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime?
+  allDay        Boolean     @default(false)
+  type          String      @default("reuniao")
+  status        String      @default("agendado")
+  location      String?
   googleEventId String?
-  clientId    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  clientId      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
 
   // Links to other models
-  serviceId   String?
-  service     Service?  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  projectId   String?
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  taskId      String?
-  task        Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 model Project {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String?
-  color       String?      @default("#3b82f6")
+  color       String?       @default("#3b82f6")
   dueDate     DateTime?
-  status      String       @default("em_andamento") // em_andamento, pausado, concluído, cancelado
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  status      String        @default("em_andamento")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   userId      String
-  user        User         @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
   columns     TaskColumn[]
   events      Event[]
 }
@@ -182,17 +184,17 @@ model TaskColumn {
 }
 
 model Task {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String?
-  priority    String     @default("media")
-  scope       String     @default("empresa")
-  order       Int        @default(0)
+  priority    String       @default("media")
+  scope       String       @default("empresa")
+  order       Int          @default(0)
   dueDate     DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   columnId    String
-  column      TaskColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  column      TaskColumn   @relation(fields: [columnId], references: [id], onDelete: Cascade)
   events      Event[]
 }
 
@@ -323,7 +325,7 @@ model ScheduledTask {
 model Subscription {
   id              String   @id @default(cuid())
   description     String
-  amount          Float
+  amount          Decimal  
   interval        String   @default("monthly")
   status          String   @default("active")
   nextBillingDate DateTime
@@ -408,8 +410,8 @@ model PaymentGatewayConfig {
 model McpConfig {
   id             String   @id @default("default")
   apiKey         String
-  allowedIps     String?  @default("[]")
-  allowedOrigins String?  @default("[]")
+  allowedIps     String?    @default("[]")
+  allowedOrigins String?    @default("[]")
   rateLimit      Int      @default(100)
   rateWindow     Int      @default(60000)
   logLevel       String   @default("info")
@@ -420,39 +422,39 @@ model McpConfig {
 
 model WaMessage {
   id           String   @id
-  instanceName String   @map("instance_name")
-  remoteJid    String   @map("remote_jid")
-  messageId    String?  @map("message_id")
+  instanceName String   
+  remoteJid    String   
+  messageId    String?  
   body         String
-  fromMe       Boolean  @default(false) @map("from_me")
+  fromMe       Boolean  @default(false) 
   status       String   @default("PENDING")
   timestamp    Int
-  createdAt    DateTime @default(now()) @map("created_at")
+  createdAt    DateTime @default(now()) 
 
-  @@index([instanceName, remoteJid, timestamp(sort: Desc)])
-  @@map("wa_messages")
+  @@index([instanceName, remoteJid, timestamp])
 }
+
 model Lead {
-  id        String    @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
   email     String?
   phone     String?
   source    String?
-  value     Float?    @default(0)
-  status    String    @default("novo") // novo, em_contato, qualificado, proposta, ganho, perdido
+  value     Decimal?   @default(0) 
+  status    String     @default("novo")
   notes     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
 }
 
 model Quote {
   id          String      @id @default(cuid())
   title       String
   description String?
-  value       Float
-  status      String      @default("rascunho") // rascunho, enviado, aprovado, recusado
+  value       Decimal     
+  status      String      @default("rascunho")
   validUntil  DateTime?
   clientId    String?
   client      Client?     @relation(fields: [clientId], references: [id])
@@ -465,25 +467,25 @@ model Quote {
 }
 
 model QuoteItem {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   description String
-  quantity    Float
-  price       Float
+  quantity    Decimal 
+  price       Decimal 
   quoteId     String
-  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
 }
 
 model Contract {
-  id             String    @id @default(cuid())
-  content        String
-  status         String    @default("pendente") // pendente, assinado, cancelado
-  signedAt       DateTime?
-  signatureIp    String?
-  signatureName  String?
-  quoteId        String?   @unique
-  quote          Quote?    @relation(fields: [quoteId], references: [id])
-  clientId       String
-  client         Client    @relation(fields: [clientId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String         @id @default(cuid())
+  content       String
+  status        String         @default("pendente")
+  signedAt      DateTime?
+  signatureIp   String?
+  signatureName String?
+  quoteId       String?        @unique
+  quote         Quote?         @relation(fields: [quoteId], references: [id])
+  clientId      String
+  client        Client         @relation(fields: [clientId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }

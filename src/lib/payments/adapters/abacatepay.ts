@@ -1,4 +1,5 @@
 import { PaymentGateway, CheckoutOptions, CheckoutResponse } from "../gateway";
+import crypto from "crypto";
 
 export class AbacatePayAdapter extends PaymentGateway {
     name = "AbacatePay";
@@ -45,7 +46,20 @@ export class AbacatePayAdapter extends PaymentGateway {
         };
     }
 
-    async processWebhook(body: any) {
+    async processWebhook(body: any, headers?: Headers, rawBody?: string) {
+        // HMAC Signature Verification
+        const signature = headers?.get("x-webhook-signature");
+        const secret = this.config.webhookSecret;
+
+        if (secret && signature && rawBody) {
+            const hmac = crypto.createHmac("sha256", secret);
+            const digest = hmac.update(rawBody).digest("hex");
+            if (digest !== signature) {
+                console.error("[ABACATEPAY] Assinatura inválida!");
+                throw new Error("Invalid signature");
+            }
+        }
+
         // body structure: { event: 'billing.paid', data: { externalId: '...', status: 'PAID' } }
         const { event, data } = body;
         let status = "pendente";

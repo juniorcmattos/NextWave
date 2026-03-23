@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { z } from "zod";
+
+const leadUpdateSchema = z.object({
+    name: z.string().min(1, "Nome é obrigatório").optional(),
+    email: z.string().email("E-mail inválido").optional().or(z.literal("")),
+    phone: z.string().optional().or(z.literal("")),
+    source: z.string().optional().or(z.literal("")),
+    value: z.preprocess((val) => val === undefined ? undefined : Number(val), z.number().optional()),
+    notes: z.string().optional().or(z.literal("")),
+    status: z.string().optional(),
+});
 
 export async function PATCH(
     req: Request,
@@ -13,22 +24,14 @@ export async function PATCH(
 
     try {
         const body = await req.json();
-        const { name, email, phone, source, value, notes, status } = body;
+        const validatedData = leadUpdateSchema.parse(body);
 
         const lead = await prisma.lead.update({
             where: {
                 id: params.id,
                 userId: session.user.id,
             },
-            data: {
-                name,
-                email,
-                phone,
-                source,
-                value: value !== undefined ? parseFloat(value) : undefined,
-                notes,
-                status,
-            },
+            data: validatedData,
         });
 
         return NextResponse.json(lead);

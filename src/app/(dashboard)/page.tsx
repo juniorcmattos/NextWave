@@ -144,65 +144,99 @@ export default async function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-2 mb-8">
-        <div className="flex items-center justify-between">
+    <div className="relative min-h-screen p-4 md:p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 neo-blur">
+      {/* Top Section: "Customer Information" Reference Aesthetic */}
+      <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
+        <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight theme-title">Dashboard</h1>
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 animate-pulse">
-              Modo Modular Ativo
-            </Badge>
+            <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+              <LayoutGrid className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter text-[#121721] dark:text-white">
+              Painel <span className="text-primary">Geral</span>
+            </h1>
           </div>
-          <div className="text-xs text-muted-foreground bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-            Sincronizado em real-time
-          </div>
+          <p className="text-muted-foreground text-sm font-medium mt-2">
+            {saudacao()}, Bem-vindo ao seu centro de comando operacional.
+          </p>
         </div>
-        <p className="text-muted-foreground text-sm">Resumo operacional e métricas de desempenho do sistema.</p>
+
+        {/* Header Stats Group (similar to search area in prints) */}
+        <div className="flex flex-wrap gap-4 items-center">
+            <div className="glass px-6 py-3 rounded-3xl flex items-center gap-4">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <DollarSign className="h-4 w-4" />
+                </div>
+                <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Volume Total</p>
+                    <p className="text-lg font-black tracking-tighter">R$ {stats.totalReceita.toLocaleString()}</p>
+                </div>
+                <div className="ml-4 text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">+11% week</div>
+            </div>
+            <div className="glass px-6 py-3 rounded-3xl flex items-center gap-4">
+                <div className="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+                    <Users className="h-4 w-4" />
+                </div>
+                <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Novos Leads</p>
+                    <p className="text-lg font-black tracking-tighter">+{stats.totalClientes}</p>
+                </div>
+                <div className="ml-4 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+12 today</div>
+            </div>
+        </div>
       </div>
-      {/* Grid de Widgets Modulares */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+      {/* Main Grid: Modular Widgets */}
+      <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {activeModules.includes("financeiro") && <FinanceWidget stats={stats} />}
         {activeModules.includes("whatsapp") && <WhatsAppWidget data={whatsAppStats} />}
         <BackupWidget data={{ lastBackup: "3h atrás" }} />
         <TasksWidget data={{ pendingTasks: 4 }} />
       </div>
 
-      {/* KPI Adicionais (Clientes e Serviços) */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <KPICard
-          title="Total de Clientes"
-          value={stats.totalClientes}
-          icon={Users}
-          change={stats.variacaoClientes}
-          iconColor="text-emerald-500"
-          iconBg="bg-emerald-500/10"
-        />
-        <KPICard
-          title="Serviços Ativos"
-          value={stats.totalServicos}
-          icon={Briefcase}
-          iconColor="text-purple-500"
-          iconBg="bg-purple-500/10"
-        />
-        <KPICard
-          title="Atrasos Detectados"
-          value={stats.totalCancelado > 0 ? 1 : 0}
-          icon={XCircle}
-          iconColor="text-red-500"
-          iconBg="bg-red-500/10"
-        />
-      </div>
-
-      {/* Seção de Análise e Atividade */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <GrowthChart data={chartData} />
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Interaction History Style for Charts */}
+        <div className="lg:col-span-2 premium-card glass p-8">
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h3 className="text-xl font-black tracking-tighter">Desempenho Comercial</h3>
+                    <p className="text-xs text-muted-foreground font-medium uppercase mt-1">Histórico de interações e conversão</p>
+                </div>
+                <Badge variant="outline" className="rounded-full px-4 py-1 border-primary/20 text-primary bg-primary/5">Mensal</Badge>
+            </div>
+            <GrowthChart data={chartData} />
         </div>
-        <TopClients clients={topClientes} />
+
+        {/* Top Clients - Side Profile Card Style */}
+        <div className="space-y-8">
+            <TopClients clients={topClientes} />
+            
+            {/* Quick Profile Mockup (as seen in prints) */}
+            <div className="premium-card glass p-8 flex flex-col items-center text-center">
+                <div className="h-24 w-24 rounded-[2rem] bg-gradient-to-br from-primary to-accent p-1 shadow-xl">
+                    <div className="h-full w-full rounded-[1.8rem] bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
+                        <Users className="h-10 w-10 text-primary opacity-20" />
+                    </div>
+                </div>
+                <h4 className="mt-6 text-xl font-black tracking-tighter">Nova Oportunidade</h4>
+                <p className="text-xs text-muted-foreground font-medium uppercase mt-1">Lead Qualificado</p>
+                <div className="grid grid-cols-4 gap-2 mt-8 w-full">
+                    {[1,2,3,4].map(i => (
+                        <div key={i} className="h-10 rounded-2xl bg-muted/30 flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
       </div>
 
-      <div className="grid gap-6">
-        <RecentTransactions transactions={ultimasTransacoes as Parameters<typeof RecentTransactions>[0]["transactions"]} />
+      <div className="premium-card glass p-8">
+        <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-black tracking-tighter">Transações Recentes</h3>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Tempo real</span>
+        </div>
+        <RecentTransactions transactions={ultimasTransacoes as any} />
       </div>
     </div>
   );

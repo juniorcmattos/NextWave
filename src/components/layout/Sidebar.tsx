@@ -115,28 +115,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   function getLinkClass(isActive: boolean, isCollapsed: boolean) {
     if (isCollapsed) {
       return cn(
-        "flex h-10 w-10 mx-auto items-center justify-center transition-all duration-200",
-        isProfessional ? "rounded-none" : "rounded-xl",
+        "flex h-12 w-12 mx-auto items-center justify-center transition-all duration-300 rounded-[1rem]",
         isActive
-          ? isProfessional
-            ? "bg-primary/10 text-primary"
-            : "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-110"
+          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 scale-105"
           : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
       );
     }
-    if (isProfessional) {
-      return cn(
-        "flex h-9 items-center gap-3 px-3 text-sm transition-colors border-l-2",
-        isActive
-          ? "border-primary bg-primary/5 text-foreground font-semibold"
-          : "border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-      );
-    }
     return cn(
-      "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+      "flex h-11 items-center gap-3 rounded-[1rem] px-4 text-sm font-medium transition-all duration-200",
       isActive
-        ? "bg-primary text-primary-foreground"
-        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+        : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
     );
   }
 
@@ -229,9 +218,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-[hsl(var(--sidebar))] transition-all duration-300 ease-in-out sm:relative sm:flex",
-          isProfessional ? "shadow-none" : "shadow-[4px_0_24px_rgba(0,0,0,0.05)]",
-          collapsed ? "w-16" : "w-64",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/5 bg-[#121721] text-white transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] sm:relative sm:flex",
+          collapsed ? "w-20" : "w-64",
           open ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
         )}
       >

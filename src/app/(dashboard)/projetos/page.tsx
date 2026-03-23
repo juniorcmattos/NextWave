@@ -37,8 +37,8 @@ function ProjectList() {
                 </div>
             ) : (
                 projects.map((project) => (
-                    <Card key={project.id} className="group hover:shadow-xl hover:shadow-primary/5 transition-all border-none bg-card/60 backdrop-blur-sm">
-                        <CardContent className="p-6">
+                    <Card key={project.id} className="premium-card glass transition-all border-none overflow-hidden group hover:scale-[1.01]">
+                        <CardContent className="p-8">
                             <div className="flex items-center justify-between gap-6">
                                 <div className="flex items-center gap-4 flex-1">
                                     <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg" style={{ backgroundColor: project.color || "#3b82f6" }}>
@@ -85,24 +85,24 @@ export default function ProjetosPage() {
     const [view, setView] = useState<"kanban" | "list">("kanban");
 
     return (
-        <div className="p-6 h-[calc(100vh-64px)] overflow-hidden flex flex-col gap-6 bg-slate-50/50 dark:bg-slate-950/20">
+        <div className="p-8 h-[calc(100vh-64px)] overflow-hidden flex flex-col gap-8">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-xl">
-                        <FolderKanban className="h-6 w-6 text-primary" />
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-2xl shadow-sm border border-primary/20">
+                        <FolderKanban className="h-8 w-8 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black tracking-tight">Meus Projetos</h1>
-                        <p className="text-xs text-muted-foreground font-medium">Gerencie e acompanhe sua produtividade.</p>
+                        <h1 className="text-3xl font-black tracking-tighter text-[#121721] dark:text-white">Projetos</h1>
+                        <p className="text-sm text-muted-foreground font-black uppercase tracking-widest opacity-60">Creative Workspaces</p>
                     </div>
                 </div>
 
-                <div className="bg-muted p-1 rounded-xl flex gap-1 shadow-inner border border-black/5">
+                <div className="bg-[#121721]/5 dark:bg-white/5 p-1.5 rounded-[1.25rem] flex gap-1 border border-black/5 dark:border-white/5">
                     <Button 
                         variant={view === "kanban" ? "default" : "ghost"} 
                         size="sm" 
                         onClick={() => setView("kanban")}
-                        className={`gap-2 rounded-lg font-bold px-4 ${view === "kanban" ? "shadow-md" : ""}`}
+                        className={`gap-2 rounded-xl font-black uppercase tracking-widest text-[10px] px-6 ${view === "kanban" ? "shadow-lg bg-[#3462EE]" : "hover:bg-primary/5"}`}
                     >
                         <LayoutGrid className="h-4 w-4" /> Kanban
                     </Button>
@@ -110,7 +110,7 @@ export default function ProjetosPage() {
                         variant={view === "list" ? "default" : "ghost"} 
                         size="sm" 
                         onClick={() => setView("list")}
-                        className={`gap-2 rounded-lg font-bold px-4 ${view === "list" ? "shadow-md" : ""}`}
+                        className={`gap-2 rounded-xl font-black uppercase tracking-widest text-[10px] px-6 ${view === "list" ? "shadow-lg bg-[#3462EE]" : "hover:bg-primary/5"}`}
                     >
                         <List className="h-4 w-4" /> Lista
                     </Button>

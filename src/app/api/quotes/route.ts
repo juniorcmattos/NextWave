@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { z } from "zod";
+
+const quoteSchema = z.object({
+    title: z.string().min(1, "Título é obrigatório"),
+    description: z.string().optional().or(z.literal("")),
+    value: z.preprocess((val) => Number(val), z.number()),
+    clientId: z.string().min(1, "Cliente é obrigatório"),
+    validUntil: z.string().optional().or(z.null()),
+    items: z.array(z.object({
+        description: z.string().min(1),
+        quantity: z.preprocess((val) => Number(val), z.number()),
+        price: z.preprocess((val) => Number(val), z.number()),
+    })).min(1),
+});
 
 export async function GET() {
     const session = await auth();
@@ -25,21 +39,21 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { title, description, value, clientId, items, validUntil } = body;
+        const validatedData = quoteSchema.parse(body);
 
         const quote = await prisma.quote.create({
             data: {
-                title,
-                description,
-                value: parseFloat(value),
-                clientId,
+                title: validatedData.title,
+                description: validatedData.description,
+                value: validatedData.value,
+                clientId: validatedData.clientId,
                 userId: session.user.id,
-                validUntil: validUntil ? new Date(validUntil) : null,
+                validUntil: validatedData.validUntil ? new Date(validatedData.validUntil) : null,
                 items: {
-                    create: items.map((item: any) => ({
+                    create: validatedData.items.map((item) => ({
                         description: item.description,
-                        quantity: parseFloat(item.quantity),
-                        price: parseFloat(item.price),
+                        quantity: item.quantity,
+                        price: item.price,
                     })),
                 },
             },

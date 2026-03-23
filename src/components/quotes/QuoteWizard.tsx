@@ -54,7 +54,7 @@ export default function QuoteWizard() {
         setForm({ ...form, items: newItems });
     };
 
-    const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const total = form.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.price)), 0);
 
     const handleSave = async () => {
         setSaving(true);
