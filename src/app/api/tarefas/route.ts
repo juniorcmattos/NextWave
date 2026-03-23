@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         ],
       },
       include: {
-        assignee: { select: { name: true, image: true, avatar: true } },
+        assignee: { select: { name: true, avatar: true } },
         client: { select: { name: true } },
         project: { select: { name: true, color: true } },
       },
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return new NextResponse("Não autorizado", { status: 401 });
     }
