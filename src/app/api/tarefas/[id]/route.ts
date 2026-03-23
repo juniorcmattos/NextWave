@@ -57,7 +57,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return new NextResponse("Não autorizado", { status: 401 });
     }
