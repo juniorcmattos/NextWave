@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
@@ -5,6 +6,7 @@ import { cookies } from "next/headers";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ColorProvider } from "@/components/providers/ColorProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Toaster } from "sonner";
 import { Softphone } from "@/components/pbx/softphone";
 import { headers } from "next/headers";
@@ -72,26 +74,28 @@ export default async function RootLayout({
       data-layout={initialLayout}
     >
       <body className="antialiased font-sans">
-        <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ColorProvider initialColor={initialColor} initialLayout={initialLayout}>
-              {children}
-              <Toaster
-                richColors
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                }}
-              />
-              {session?.user && <Softphone />}
-            </ColorProvider>
-          </ThemeProvider>
-        </SessionProvider>
+        <QueryProvider>
+          <SessionProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <ColorProvider initialColor={initialColor} initialLayout={initialLayout}>
+                {children}
+                <Toaster
+                  richColors
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                  }}
+                />
+                {session?.user && <Softphone />}
+              </ColorProvider>
+            </ThemeProvider>
+          </SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   );

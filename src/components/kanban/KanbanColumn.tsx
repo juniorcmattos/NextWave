@@ -6,10 +6,12 @@ import { Plus, MoreVertical } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import { cn } from "@/lib/utils";
 
+import { Task } from "@/types/kanban";
+
 interface KanbanColumnProps {
   id: string;
   title: string;
-  tasks: any[];
+  tasks: Task[];
   onAddTask?: (status: string) => void;
 }
 

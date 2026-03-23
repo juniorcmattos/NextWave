@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
@@ -12,11 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
 
+import { Task } from "@/types/kanban";
+
 interface KanbanCardProps {
-  task: any;
+  task: Task;
 }
 
-export function KanbanCard({ task }: KanbanCardProps) {
+function KanbanCardComponent({ task }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -128,3 +131,5 @@ export function KanbanCard({ task }: KanbanCardProps) {
     </div>
   );
 }
+
+export const KanbanCard = memo(KanbanCardComponent);

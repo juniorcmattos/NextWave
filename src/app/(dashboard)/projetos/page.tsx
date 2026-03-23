@@ -56,7 +56,7 @@ function ProjectList() {
                                     <div className="hidden md:flex flex-col items-center">
                                         <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Status</p>
                                         <Badge variant="outline" className="mt-1 capitalize rounded-full py-0 px-3 bg-slate-100 dark:bg-slate-800 border-none font-bold text-slate-700 dark:text-slate-300">
-                                            {project.status.replace("_", " ")}
+                                            {project.status?.replace("_", " ")}
                                         </Badge>
                                     </div>
                                     <div className="hidden sm:flex flex-col items-center">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -15,10 +15,16 @@ import {
   defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Task } from "@/types/kanban";
 
 const COLUMNS = [
   { id: "A Fazer", title: "A Fazer" },
@@ -28,28 +34,62 @@ const COLUMNS = [
 ];
 
 export function KanbanBoard() {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTask, setActiveTask] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [localTasks, setLocalTasks] = useState<Task[]>([]);
 
-  const fetchTasks = useCallback(async () => {
-    try {
-      setLoading(true);
+  const { data: serverTasks, isLoading } = useQuery<Task[]>({
+    queryKey: ["tasks"],
+    queryFn: async () => {
       const res = await fetch("/api/tarefas");
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(data);
-      }
-    } catch (err) {
-      toast.error("Erro ao carregar tarefas");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      if (!res.ok) throw new Error("Erro ao carregar tarefas");
+      return res.json();
+    },
+  });
 
+  // Agrupamento memoizado para performance sênior
+  const tasksByStatus = useMemo(() => {
+    const grouped: Record<string, Task[]> = {
+      "A Fazer": [],
+      "Em Andamento": [],
+      "Em Revisão": [],
+      "Concluído": [],
+    };
+    localTasks.forEach((task) => {
+      if (grouped[task.status]) {
+        grouped[task.status].push(task);
+      }
+    });
+    return grouped;
+  }, [localTasks]);
+
+  // Sincronizar estado local quando os dados do servidor mudarem
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    if (serverTasks) {
+      setLocalTasks(serverTasks);
+    }
+  }, [serverTasks]);
+
+  // Mutação com Rollback e Feedback Sênior
+  const mutation = useMutation({
+    mutationFn: async ({ id, status, order }: { id: string; status: string; order: number }) => {
+      const res = await fetch(`/api/tarefas/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, order }),
+      });
+      if (!res.ok) throw new Error("Falha ao salvar alteração");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (error: Error) => {
+      // Reverter para o estado do servidor em caso de erro
+      if (serverTasks) setLocalTasks(serverTasks);
+      toast.error(error.message || "Erro na sincronização");
+    },
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -62,8 +102,8 @@ export function KanbanBoard() {
 
   function handleDragStart(event: DragStart) {
     const { active } = event;
-    const task = tasks.find((t) => t.id === active.id);
-    setActiveTask(task);
+    const task = localTasks.find((t) => t.id === active.id);
+    if (task) setActiveTask(task);
   }
 
   function handleDragOver(event: DragOver) {
@@ -75,33 +115,36 @@ export function KanbanBoard() {
 
     if (activeId === overId) return;
 
-    const isActiveATask = active.data.current?.type === "Task" || true; // Simplificado
-    const isOverATask = over.data.current?.type === "Task" || tasks.some(t => t.id === overId);
+    const isOverATask = over.data.current?.type === "Task" || localTasks.some(t => t.id === overId);
     const isOverAColumn = COLUMNS.some((col) => col.id === overId);
-
-    if (!isActiveATask) return;
 
     // Arrastando sobre outra tarefa
     if (isOverATask) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        const overIndex = tasks.findIndex((t) => t.id === overId);
+      setLocalTasks((prev: Task[]) => {
+        const activeIndex = prev.findIndex((t) => t.id === activeId);
+        const overIndex = prev.findIndex((t) => t.id === overId);
 
-        if (tasks[activeIndex].status !== tasks[overIndex].status) {
-          tasks[activeIndex].status = tasks[overIndex].status;
-          return arrayMove(tasks, activeIndex, overIndex - 1);
+        if (activeIndex === -1 || overIndex === -1) return prev;
+
+        if (prev[activeIndex].status !== prev[overIndex].status) {
+          const newTasks = [...prev];
+          newTasks[activeIndex] = { ...newTasks[activeIndex], status: prev[overIndex].status };
+          return arrayMove(newTasks, activeIndex, overIndex);
         }
 
-        return arrayMove(tasks, activeIndex, overIndex);
+        return arrayMove(prev, activeIndex, overIndex);
       });
     }
 
     // Arrastando sobre uma coluna vazia
     if (isOverAColumn) {
-      setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
-        tasks[activeIndex].status = overId as string;
-        return arrayMove(tasks, activeIndex, activeIndex);
+      setLocalTasks((prev: Task[]) => {
+        const activeIndex = prev.findIndex((t) => t.id === activeId);
+        if (activeIndex === -1) return prev;
+        
+        const newTasks = [...prev];
+        newTasks[activeIndex] = { ...newTasks[activeIndex], status: overId as string };
+        return arrayMove(newTasks, activeIndex, activeIndex);
       });
     }
   }
@@ -112,34 +155,29 @@ export function KanbanBoard() {
     if (!over) return;
 
     const activeId = active.id;
-    const overId = over.id;
-    const task = tasks.find((t) => t.id === activeId);
+    const task = localTasks.find((t) => t.id === activeId);
 
     if (!task) return;
 
-    try {
-      // Sincronizar com API
-      const res = await fetch(`/api/tarefas/${task.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          status: task.status,
-          order: tasks.filter(t => t.status === task.status).indexOf(task)
-        }),
-      });
-
-      if (!res.ok) throw new Error();
-      toast.success("Tarefa movida");
-    } catch (err) {
-      toast.error("Erro ao salvar alteração");
-      fetchTasks(); // Rollback
-    }
+    // Disparar mutação (Sincronização em background)
+    mutation.mutate({
+      id: task.id,
+      status: task.status,
+      order: tasksByStatus[task.status].indexOf(task)
+    });
   }
 
-  if (loading) {
+  if (isLoading && localTasks.length === 0) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex gap-6 h-full overflow-x-auto pb-10 scrollbar-hide">
+        {COLUMNS.map((col) => (
+          <div key={col.id} className="flex flex-col w-80 shrink-0 gap-4">
+            <div className="h-10 w-32 bg-slate-200 animate-pulse rounded-xl mb-2" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-40 w-full bg-slate-100 animate-pulse rounded-2xl" />
+            ))}
+          </div>
+        ))}
       </div>
     );
   }
@@ -158,8 +196,8 @@ export function KanbanBoard() {
             key={col.id}
             id={col.id}
             title={col.title}
-            tasks={tasks.filter((t) => t.status === col.id)}
-            onAddTask={(status) => {
+            tasks={(tasksByStatus[col.id] || []) as Task[]}
+            onAddTask={(status: string) => {
                // Implementar futuramente ou abrir modal
             }}
           />

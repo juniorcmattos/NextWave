@@ -17,6 +17,20 @@ export async function PUT(
     const body = await req.json();
     const { title, description, status, priority, dueDate, assigneeId, clientId, projectId, order } = body;
 
+    // Sênior: Validar ownership antes de atualizar (Prevenir IDOR)
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (!existingTask) {
+      return new NextResponse("Tarefa não encontrada", { status: 404 });
+    }
+
+    if (existingTask.userId !== session.user.id) {
+      return new NextResponse("Acesso negado: você não é o dono desta tarefa", { status: 403 });
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: {
@@ -50,6 +64,20 @@ export async function DELETE(
     }
 
     const { id } = params;
+
+    // Sênior: Validar ownership antes de deletar
+    const existingTask = await prisma.task.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (!existingTask) {
+      return new NextResponse("Tarefa não encontrada", { status: 404 });
+    }
+
+    if (existingTask.userId !== session.user.id) {
+      return new NextResponse("Acesso negado: você não é o dono desta tarefa", { status: 403 });
+    }
 
     await prisma.task.delete({
       where: { id },

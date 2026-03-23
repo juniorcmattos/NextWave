@@ -342,5 +342,3 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     </TooltipProvider>
   );
 }
-  );
-}
