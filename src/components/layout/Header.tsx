@@ -110,7 +110,7 @@ export function Header({ title, onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center justify-between gap-4 px-8 bg-transparent">
+    <header className="sticky top-0 z-40 flex h-20 items-center justify-between gap-4 px-8 backdrop-blur-md bg-white/80 dark:bg-black/40 border-b border-white/40 shadow-sm transition-all duration-300">
       {/* Search & Tabs Container */}
       <div className="flex items-center gap-8 flex-1">
         {/* Mobile Menu Trigger */}

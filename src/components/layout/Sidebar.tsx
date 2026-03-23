@@ -5,14 +5,18 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Briefcase,
   BarChart3, Calendar, Settings, ChevronLeft, ChevronRight, ChevronDown,
-  Zap, Database, MessageSquare, Paintbrush, Clock, PieChart, Phone, Server
+  Zap, Database, MessageSquare, Paintbrush, Clock, PieChart, Phone, Server,
+  CheckSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { useColorTheme } from "@/components/providers/ColorProvider";
+import { useSession } from "next-auth/react";
+import { getInitials } from "@/lib/utils";
 import packageInfo from "../../../package.json";
 
 const dashboardSubItems = [
@@ -40,6 +44,7 @@ const navItems: NavItem[] = [
   { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/agenda", label: "Agenda", icon: Calendar, module: "agenda" },
+  { href: "/tarefas", label: "Tarefas", icon: CheckSquare, module: "tarefas" },
   { href: "/whatsapp", label: "WhatsApp", icon: MessageSquare, module: "whatsapp" },
   { href: "/configuracoes/pbx", label: "Telefonia", icon: Phone, module: "pbx" },
 ];
@@ -58,6 +63,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const { data: session } = useSession();
   const pathname = usePathname();
   const { layoutTheme } = useColorTheme();
   const [collapsed, setCollapsed] = useState(false);
@@ -141,7 +147,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       return (
         <Tooltip key={item.href}>
           <TooltipTrigger asChild>
-            <Link href={item.href} className={getLinkClass(isActive || subActive, true)} onClick={onClose}>
+            <Link 
+              href={item.href} 
+              className={cn(
+                "flex h-12 w-12 mx-auto items-center justify-center transition-all duration-300 rounded-xl",
+                isActive || subActive
+                  ? "bg-primary text-white shadow-lg shadow-primary/40 scale-105"
+                  : "text-white/40 hover:bg-white/5 hover:text-white"
+              )} 
+              onClick={onClose}
+            >
               <Icon className="h-4 w-4" />
             </Link>
           </TooltipTrigger>
@@ -152,44 +167,43 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
     if (hasSubItems) {
       const subs = item.subItems!.filter(s => !s.module || activeModules.includes(s.module));
+      const isOpen = openMenus[item.href];
+
       return (
-        <div key={item.href}>
-          <div className="flex items-center">
-            <Link
-              href={item.href}
-              className={cn(getLinkClass(isActive && !subActive, false), "flex-1 min-w-0")}
-              onClick={onClose}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate flex-1">{item.label}</span>
-            </Link>
-            {subs.length > 0 && (
-              <button
-                onClick={() => toggleMenu(item.href)}
-                className="h-9 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0"
-              >
-                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", openMenus[item.href] && "rotate-180")} />
-              </button>
+        <div key={item.href} className="flex flex-col gap-1">
+          <div 
+            className={cn(
+              "group flex h-11 items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold transition-all duration-200 cursor-pointer",
+              subActive || isActive
+                ? "bg-primary text-white shadow-md shadow-primary/20"
+                : "text-white/40 hover:bg-white/5 hover:text-white"
             )}
+            onClick={() => toggleMenu(item.href)}
+          >
+            <div className="flex items-center gap-3">
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </div>
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isOpen && "rotate-180")} />
           </div>
 
-          {openMenus[item.href] && subs.length > 0 && (
-            <div className="ml-3 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-border/60 pl-3">
+          {isOpen && subs.length > 0 && (
+            <div className="ml-6 flex flex-col gap-1 mt-1 border-l border-white/10 pl-4 animate-in fade-in slide-in-from-top-1 duration-300">
               {subs.map(sub => {
-                const isSubActive = pathname.startsWith(sub.href);
+                const isSubActive = pathname === sub.href;
                 return (
                   <Link
                     key={sub.href}
                     href={sub.href}
                     className={cn(
-                      "flex h-8 items-center gap-2 rounded-md px-2 text-xs transition-colors",
+                      "flex h-8 items-center gap-2 rounded-lg px-2 text-xs transition-all",
                       isSubActive
-                        ? "text-primary font-semibold bg-primary/5"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        ? "text-primary font-bold bg-white/10"
+                        : "text-white/30 hover:text-white hover:bg-white/5"
                     )}
                     onClick={onClose}
                   >
-                    <PieChart className="h-3 w-3 shrink-0 opacity-70" />
+                    <div className={cn("h-1 w-1 rounded-full", isSubActive ? "bg-primary" : "bg-white/20")} />
                     {sub.label}
                   </Link>
                 );
@@ -201,7 +215,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     }
 
     return (
-      <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)} onClick={onClose}>
+      <Link 
+        key={item.href} 
+        href={item.href} 
+        className={cn(
+          "flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-all duration-200",
+          isActive
+            ? "bg-primary text-white shadow-md shadow-primary/20"
+            : "text-white/40 hover:bg-white/5 hover:text-white"
+        )} 
+        onClick={onClose}
+      >
         <Icon className="h-4 w-4 shrink-0" />
         <span className="truncate">{item.label}</span>
       </Link>
@@ -220,72 +244,67 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-4 left-4 z-50 flex flex-col rounded-[2.5rem] bg-[#121721] text-white shadow-2xl shadow-black/40 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] sm:relative sm:flex my-4 ml-4",
+          "fixed inset-y-4 left-4 z-50 flex flex-col rounded-[2rem] bg-[#121721] text-white shadow-2xl shadow-black/40 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] sm:relative sm:flex my-4 ml-4 overflow-hidden",
           collapsed ? "w-20" : "w-64",
           open ? "translate-x-0" : "-translate-x-[calc(100%+2rem)] sm:translate-x-0"
         )}
       >
-        <div className={cn("flex h-20 items-center px-4 mb-2 transition-all", collapsed ? "justify-center" : "gap-3")}>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-accent-blue rounded-full shadow-lg shadow-accent-blue/20">
+        {/* Logo Section */}
+        <div className={cn("flex h-20 items-center px-6 mb-6 transition-all", collapsed ? "justify-center" : "gap-3")}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary rounded-xl shadow-lg shadow-primary/40 rotate-3 group-hover:rotate-0 transition-transform">
             <Zap className="h-5 w-5 text-white" />
           </div>
           {!collapsed && (
             <div className="animate-in fade-in duration-500">
-              <p className="text-sm font-black tracking-tighter text-white leading-none uppercase">NextWave</p>
-              <p className="text-[10px] font-bold text-accent-blue uppercase tracking-widest opacity-80">CRM Premium</p>
+              <p className="text-sm font-black tracking-tight text-white leading-none uppercase">NextWave</p>
+              <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-80 mt-1">CRM Premium</p>
             </div>
           )}
         </div>
 
-        <ScrollArea className="flex-1 px-3">
-          <nav className="flex flex-col gap-3 py-2">
-            {filteredNavItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-              const Icon = item.icon;
-              
-              return (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    <Link 
-                      href={item.href} 
-                      className={cn(
-                        "group relative flex items-center transition-all duration-300",
-                        collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 w-full px-1"
-                      )} 
-                      onClick={onClose}
-                    >
-                      <div className={cn(
-                        "flex items-center justify-center shrink-0 transition-all duration-300 rounded-full",
-                        collapsed ? "h-12 w-12" : "h-10 w-10 ml-1",
-                        isActive 
-                          ? "bg-accent-blue text-white shadow-lg shadow-accent-blue/30 scale-110" 
-                          : "bg-white/5 text-white/60 group-hover:bg-white/10 group-hover:text-white"
-                      )}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      {!collapsed && (
-                        <span className={cn(
-                          "ml-4 text-xs font-bold uppercase tracking-widest transition-all",
-                          isActive ? "text-white" : "text-white/40 group-hover:text-white/80"
-                        )}>
-                          {item.label}
-                        </span>
-                      )}
-                      {isActive && !collapsed && (
-                        <div className="absolute right-2 h-1.5 w-1.5 rounded-full bg-accent-blue" />
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
-                </Tooltip>
-              );
-            })}
+        {/* Navigation */}
+        <ScrollArea className="flex-1 px-4">
+          <nav className="flex flex-col gap-2 py-2">
+            {filteredNavItems.map((item) => renderNavItem(item))}
           </nav>
         </ScrollArea>
 
-        <div className="px-3 py-6 mt-auto">
-          <nav className="flex flex-col gap-3">
-            {bottomItems.map(item => {
+        {/* Bottom Section with Avatar */}
+        <div className="p-4 mt-auto border-t border-white/5 bg-black/20">
+          {!collapsed ? (
+            <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+              <Avatar className="h-9 w-9 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
+                <AvatarImage src={session?.user?.image ?? ""} />
+                <AvatarFallback className="text-xs bg-nw-dark text-white font-bold">
+                  {getInitials(session?.user?.name ?? "U")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col min-w-0">
+                <p className="text-xs font-black text-white truncate truncate uppercase tracking-tighter">{session?.user?.name}</p>
+                <p className="text-[9px] text-white/40 truncate font-medium">{session?.user?.email}</p>
+              </div>
+            </div>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex justify-center p-1 cursor-pointer">
+                  <Avatar className="h-10 w-10 border-2 border-primary/20">
+                    <AvatarImage src={session?.user?.image ?? ""} />
+                    <AvatarFallback className="text-xs bg-nw-dark text-white font-bold">
+                      {getInitials(session?.user?.name ?? "U")}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p className="font-bold">{session?.user?.name}</p>
+                <p className="text-[10px] opacity-70">{session?.user?.email}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          <nav className="flex flex-col gap-1 mt-4">
+            {bottomItems.slice(0, 3).map(item => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
@@ -294,27 +313,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     <Link 
                       href={item.href} 
                       className={cn(
-                        "group flex items-center transition-all duration-300",
-                        collapsed ? "justify-center h-10 w-10 mx-auto" : "h-10 w-full px-1"
+                        "group flex items-center transition-all duration-300 rounded-lg",
+                        collapsed ? "justify-center h-10 w-10 mx-auto" : "h-10 w-full px-3",
+                        isActive ? "bg-white/10 text-white" : "text-white/30 hover:bg-white/5 hover:text-white"
                       )} 
                       onClick={onClose}
                     >
-                      <div className={cn(
-                        "flex items-center justify-center shrink-0 transition-all duration-300 rounded-full",
-                        collapsed ? "h-10 w-10" : "h-8 w-8 ml-2",
-                        isActive 
-                          ? "bg-white text-[#121721] scale-110" 
-                          : "bg-white/5 text-white/40 group-hover:bg-white/10 group-hover:text-white"
-                      )}>
-                        <Icon className="h-3.5 w-3.5" />
-                      </div>
+                      <Icon className={cn("shrink-0", collapsed ? "h-4 w-4" : "h-3.5 w-3.5")} />
                       {!collapsed && (
-                        <span className={cn(
-                          "ml-4 text-[10px] font-bold uppercase tracking-widest transition-all",
-                          isActive ? "text-white" : "text-white/30 group-hover:text-white/60"
-                        )}>
-                          {item.label}
-                        </span>
+                        <span className="ml-3 text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
                       )}
                     </Link>
                   </TooltipTrigger>
@@ -331,16 +338,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         >
           {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
-
-        {!collapsed && (
-          <div className="px-4 py-4 text-center">
-             <div className="h-1 w-8 bg-white/10 rounded-full mx-auto mb-2" />
-             <p className="text-[8px] font-black uppercase tracking-widest text-white/20">
-               NextWave v2.0
-             </p>
-          </div>
-        )}
       </aside>
     </TooltipProvider>
+  );
+}
   );
 }

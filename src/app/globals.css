@@ -1,4 +1,10 @@
-@import url('https://fonts.cdnfonts.com/css/lufga');
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,19 +12,19 @@
 
 @layer base {
   :root {
-    --background: 210 20% 96%; /* #F0F4F8 */
+    --background: 210 20% 96%; /* #F0F4F8 - Gelo */
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 225 85% 57%; /* #3462EE */
+    --primary: 225 85% 57%; /* #3462EE - Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 195 39% 47%; /* #4A91A8 */
+    --secondary: 195 39% 47%; /* #4A91A8 - Teal */
     --secondary-foreground: 0 0% 100%;
     --muted: 210 20% 90%;
     --muted-foreground: 215 16% 47%;
-    --accent: 56 84% 61%; /* #EFE347 */
+    --accent: 56 84% 61%; /* #EFE347 - Yellow */
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -29,8 +35,8 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 225 85% 57%;
-    --sidebar: 222 47% 10%; /* Deep Navy #121721 */
-    --radius: 1.25rem; /* 20px */
+    --sidebar: 222 47% 10%; /* #121721 - Dark Navy */
+    --radius: 1.5rem; /* 24px */
   }
 
   .dark {
@@ -55,119 +61,18 @@
     --ring: 225 85% 57%;
   }
 
-  /* ===== CORES DE DESTAQUE ===== */
-  [data-color='blue'] {
-    --primary: 182 100% 50%;
-    --primary-foreground: 182 100% 10%;
-    --ring: 182 100% 50%;
-  }
-
-  [data-color='orange'] {
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 24 95% 53%;
-  }
-
-  [data-color='green'] {
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 160 84% 39%;
-  }
-
-  [data-color='purple'] {
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 262 83% 58%;
-  }
-
-  [data-color='rose'] {
-    --primary: 347 77% 50%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 347 77% 50%;
-  }
-
-  [data-color='pink'] {
-    --primary: 322 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 322 100% 50%;
-  }
-
-  .dark[data-color='blue'] {
-    --primary: 182 100% 50%;
-    --primary-foreground: 182 100% 10%;
-    --ring: 182 100% 50%;
-  }
-
-  .dark[data-color='orange'] {
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 24 95% 53%;
-  }
-
-  .dark[data-color='green'] {
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 160 84% 39%;
-  }
-
-  .dark[data-color='purple'] {
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 262 83% 58%;
-  }
-
-  .dark[data-color='rose'] {
-    --primary: 347 77% 50%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 347 77% 50%;
-  }
-
-  .dark[data-color='pink'] {
-    --primary: 322 80% 60%;
-    --primary-foreground: 0 0% 100%;
-    --ring: 322 80% 60%;
-  }
-
-  .primary-gradient {
-    @apply bg-gradient-to-br from-primary to-primary/80 transition-all duration-300;
-  }
-
-  /* ===== LAYOUT PROFESSIONAL (ChartMogul style) ===== */
-  [data-layout='professional'] {
-    --radius: 0px;
-  }
-
-  [data-layout='professional'] .rounded-xl,
-  [data-layout='professional'] .rounded-lg,
-  [data-layout='professional'] .rounded-md {
-    border-radius: 0px !important;
-  }
-
-  [data-layout='professional'] .kpi-card {
-    @apply border-none bg-transparent rounded-none border-b border-border pt-4 pb-4 px-0 shadow-none;
-  }
-
-  [data-layout='professional'] aside {
-    @apply border-r border-border shadow-none;
-  }
-
-  [data-layout='professional'] header {
-    @apply border-b border-border shadow-none bg-background;
-  }
-
-  [data-layout='professional'] .theme-title {
-    @apply font-black tracking-tight uppercase text-xs text-muted-foreground mb-4;
-  }
+  /* Accent Color Overrides */
+  [data-color='blue'] { --primary: 225 85% 57%; --ring: 225 85% 57%; }
+  [data-color='orange'] { --primary: 24 95% 53%; --ring: 24 95% 53%; }
+  [data-color='green'] { --primary: 160 84% 39%; --ring: 160 84% 39%; }
+  [data-color='purple'] { --primary: 262 83% 58%; --ring: 262 83% 58%; }
+  [data-color='rose'] { --primary: 347 77% 50%; --ring: 347 77% 50%; }
+  [data-color='pink'] { --primary: 322 100% 50%; --ring: 322 100% 50%; }
 }
 
 @layer base {
-  * {
-    @apply border-border selection:bg-primary/30;
-  }
-
-  body {
-    @apply bg-background text-foreground font-sans antialiased selection:text-primary;
-  }
+  * { @apply border-border selection:bg-primary/30; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
 
   ::-webkit-scrollbar {
     width: 6px;
@@ -203,33 +108,27 @@
     }
   }
 
-  .hover-lift {
-    @apply transition-transform duration-200 hover:-translate-y-0.5;
-  }
-
-  .press-effect {
-    @apply transition-transform duration-100 active:scale-[0.98];
-  }
-
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl shadow-black/5;
+    @apply backdrop-blur-xl bg-white/70 border border-white/40 shadow-xl shadow-black/5;
   }
-
+  
   .dark .glass {
-    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/20;
+    @apply backdrop-blur-xl bg-black/40 border border-white/10 shadow-xl shadow-black/20;
   }
 
-  .premium-card {
-    @apply rounded-[2rem] border-none shadow-xl shadow-black/5 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 active:scale-[0.99];
+  /* Card Color Variants */
+  .card-blue { @apply bg-[#3462EE] text-white border-none shadow-lg shadow-blue-500/20 !important; }
+  .card-yellow { @apply bg-[#EFE347] text-[#121721] border-none shadow-lg shadow-yellow-500/20 !important; }
+  .card-teal { @apply bg-[#4A91A8] text-white border-none shadow-lg shadow-teal-500/20 !important; }
+  .card-mint { @apply bg-[#EAF0DC] text-[#121721] border-none shadow-lg shadow-emerald-500/10 !important; }
+  .card-dark { @apply bg-[#121721] text-white border-none shadow-xl shadow-black/20 !important; }
+  .card-white { @apply bg-white text-[#121721] border border-slate-100 shadow-xl shadow-black/5 !important; }
+
+  .premium-shadow {
+    @apply shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)];
   }
 
-  .card-blue { @apply bg-[#3462EE] text-white !important; }
-  .card-teal { @apply bg-[#4A91A8] text-white !important; }
-  .card-yellow { @apply bg-[#EFE347] text-[#121721] !important; }
-  .card-navy { @apply bg-[#121721] text-white !important; }
-
-  .neo-blur {
-    background: radial-gradient(circle at top left, rgba(52, 98, 238, 0.05), transparent 40%),
-                radial-gradient(circle at bottom right, rgba(239, 227, 71, 0.05), transparent 40%);
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl;
   }
 }

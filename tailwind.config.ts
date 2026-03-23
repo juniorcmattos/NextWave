@@ -58,17 +58,15 @@ const config: Config = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
-        // Novos tokens do redesign
-        'ice-blue': '#F0F4F8',
-        'dark-card': '#121721',
-        'accent-blue': '#3462EE',
-        'accent-yellow': '#EFE347',
-        'accent-teal': '#4A91A8',
-        'accent-mint': '#EAF0DC',
+        // Novos tokens do redesign NW
+        'nw-blue': '#3462EE',
+        'nw-yellow': '#EFE347',
+        'nw-teal': '#4A91A8',
+        'nw-mint': '#EAF0DC',
+        'nw-dark': '#121721',
       },
       fontFamily: {
-        lufga: ['Lufga', 'sans-serif'],
-        sans: ['Lufga', 'Inter', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -76,6 +74,7 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
         'xl': '20px',
         '2xl': '24px',
+        '3xl': '1.5rem',
       },
       keyframes: {
         "accordion-down": {
@@ -94,12 +93,17 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "slide-in": "slide-in 0.3s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
+        "scale-in": "scale-in 0.3s ease-out",
       },
     },
   },

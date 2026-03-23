@@ -43,6 +43,8 @@ model User {
   transactions       Transaction[]
   leads              Lead[]
   quotes             Quote[]
+  createdTasks       Task[]         @relation("CreatedTasks")
+  assignedTasks      Task[]         @relation("AssignedTasks")
   @@map("users")
 }
 
@@ -72,6 +74,7 @@ model Client {
   transactions   Transaction[]
   quotes         Quote[]
   contracts      Contract[]
+  tasks          Task[]
 }
 
 model Branch {
@@ -170,6 +173,7 @@ model Project {
   user        User          @relation(fields: [userId], references: [id])
   columns     TaskColumn[]
   events      Event[]
+  tasks       Task[]
 }
 
 model TaskColumn {
@@ -184,17 +188,30 @@ model TaskColumn {
 }
 
 model Task {
-  id          String       @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
-  priority    String       @default("media")
-  scope       String       @default("empresa")
-  order       Int          @default(0)
+  status      String    @default("A Fazer") // "A Fazer" | "Em Andamento" | "Em Revisão" | "Concluído"
+  priority    String    @default("media")   // "baixa" | "media" | "alta"
+  order       Int       @default(0)
   dueDate     DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  columnId    String
-  column      TaskColumn   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relacionamentos
+  userId      String
+  user        User      @relation("CreatedTasks", fields: [userId], references: [id])
+  assigneeId  String?
+  assignee    User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id])
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  // Retrocompatibilidade (opcional, mas mantido se necessário para colunas de projeto)
+  columnId    String?
+  column      TaskColumn? @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  
   events      Event[]
 }
 
