@@ -1,10 +1,12 @@
+@import url('https://fonts.cdnfonts.com/css/lufga');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 210 20% 96%; /* #F0F4F8 */
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -28,7 +30,7 @@
     --input: 214 32% 91%;
     --ring: 225 85% 57%;
     --sidebar: 222 47% 10%; /* Deep Navy #121721 */
-    --radius: 1.5rem;
+    --radius: 1.25rem; /* 20px */
   }
 
   .dark {

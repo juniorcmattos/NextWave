@@ -58,11 +58,24 @@ const config: Config = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        // Novos tokens do redesign
+        'ice-blue': '#F0F4F8',
+        'dark-card': '#121721',
+        'accent-blue': '#3462EE',
+        'accent-yellow': '#EFE347',
+        'accent-teal': '#4A91A8',
+        'accent-mint': '#EAF0DC',
+      },
+      fontFamily: {
+        lufga: ['Lufga', 'sans-serif'],
+        sans: ['Lufga', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'xl': '20px',
+        '2xl': '24px',
       },
       keyframes: {
         "accordion-down": {

@@ -1,3 +1,4 @@
+// Force rebuild - redesign verification
 import LeadPipeline from "@/components/leads/LeadPipeline";
 
 export default function LeadsPage() {

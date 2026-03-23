@@ -34,6 +34,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, subItems: dashboardSubItems },
+  { href: "/leads", label: "Leads", icon: Zap, module: "leads" },
   { href: "/clientes", label: "Clientes", icon: Users, module: "clientes" },
   { href: "/usuarios", label: "Usuários", icon: Users },
   { href: "/projetos/kanban", label: "Projetos", icon: Briefcase, module: "projetos" },
@@ -81,7 +82,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           setActiveModules(data.filter((m: { enabled: boolean }) => m.enabled).map((m: { key: string }) => m.key));
       })
       .catch(() => {
-        setActiveModules(["clientes", "financeiro", "projetos", "servicos", "agenda", "usuarios", "whatsapp"]);
+        setActiveModules(["clientes", "leads", "financeiro", "projetos", "servicos", "agenda", "usuarios", "whatsapp"]);
       });
   }, []);
 
@@ -97,6 +98,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const moduleMapping: Record<string, string> = {
     "/clientes": "clientes",
+    "/leads": "leads",
     "/financeiro": "financeiro",
     "/projetos": "projetos",
     "/servicos": "servicos",
@@ -218,69 +220,124 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/5 bg-[#121721] text-white transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] sm:relative sm:flex",
+          "fixed inset-y-4 left-4 z-50 flex flex-col rounded-[2.5rem] bg-[#121721] text-white shadow-2xl shadow-black/40 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] sm:relative sm:flex my-4 ml-4",
           collapsed ? "w-20" : "w-64",
-          open ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
+          open ? "translate-x-0" : "-translate-x-[calc(100%+2rem)] sm:translate-x-0"
         )}
       >
-        <div className={cn("flex h-16 items-center border-b border-border px-4 transition-all", collapsed ? "justify-center" : "gap-3")}>
-          <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center bg-primary", isProfessional ? "rounded-none" : "rounded-lg shadow-lg shadow-primary/20")}>
-            <Zap className="h-4 w-4 text-primary-foreground" />
+        <div className={cn("flex h-20 items-center px-4 mb-2 transition-all", collapsed ? "justify-center" : "gap-3")}>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-accent-blue rounded-full shadow-lg shadow-accent-blue/20">
+            <Zap className="h-5 w-5 text-white" />
           </div>
           {!collapsed && (
-            <div>
-              <p className={cn("text-sm font-bold text-foreground leading-none", isProfessional && "font-black tracking-tight")}>NextWave</p>
-              <p className="text-xs text-muted-foreground">CRM Pro</p>
+            <div className="animate-in fade-in duration-500">
+              <p className="text-sm font-black tracking-tighter text-white leading-none uppercase">NextWave</p>
+              <p className="text-[10px] font-bold text-accent-blue uppercase tracking-widest opacity-80">CRM Premium</p>
             </div>
           )}
         </div>
 
-        <ScrollArea className="flex-1 py-4">
-          <nav className="flex flex-col gap-1 px-2">
-            {filteredNavItems.map(renderNavItem)}
+        <ScrollArea className="flex-1 px-3">
+          <nav className="flex flex-col gap-3 py-2">
+            {filteredNavItems.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              const Icon = item.icon;
+              
+              return (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link 
+                      href={item.href} 
+                      className={cn(
+                        "group relative flex items-center transition-all duration-300",
+                        collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 w-full px-1"
+                      )} 
+                      onClick={onClose}
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center shrink-0 transition-all duration-300 rounded-full",
+                        collapsed ? "h-12 w-12" : "h-10 w-10 ml-1",
+                        isActive 
+                          ? "bg-accent-blue text-white shadow-lg shadow-accent-blue/30 scale-110" 
+                          : "bg-white/5 text-white/60 group-hover:bg-white/10 group-hover:text-white"
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      {!collapsed && (
+                        <span className={cn(
+                          "ml-4 text-xs font-bold uppercase tracking-widest transition-all",
+                          isActive ? "text-white" : "text-white/40 group-hover:text-white/80"
+                        )}>
+                          {item.label}
+                        </span>
+                      )}
+                      {isActive && !collapsed && (
+                        <div className="absolute right-2 h-1.5 w-1.5 rounded-full bg-accent-blue" />
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+                </Tooltip>
+              );
+            })}
           </nav>
         </ScrollArea>
 
-        <div className="border-t border-border py-4">
-          <nav className="flex flex-col gap-1 px-2">
+        <div className="px-3 py-6 mt-auto">
+          <nav className="flex flex-col gap-3">
             {bottomItems.map(item => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
-              if (collapsed) {
-                return (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link href={item.href} className={getLinkClass(isActive, true)} onClick={onClose}>
-                        <Icon className="h-4 w-4" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
-                  </Tooltip>
-                );
-              }
               return (
-                <Link key={item.href} href={item.href} className={getLinkClass(isActive, false)} onClick={onClose}>
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </Link>
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link 
+                      href={item.href} 
+                      className={cn(
+                        "group flex items-center transition-all duration-300",
+                        collapsed ? "justify-center h-10 w-10 mx-auto" : "h-10 w-full px-1"
+                      )} 
+                      onClick={onClose}
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center shrink-0 transition-all duration-300 rounded-full",
+                        collapsed ? "h-10 w-10" : "h-8 w-8 ml-2",
+                        isActive 
+                          ? "bg-white text-[#121721] scale-110" 
+                          : "bg-white/5 text-white/40 group-hover:bg-white/10 group-hover:text-white"
+                      )}>
+                        <Icon className="h-3.5 w-3.5" />
+                      </div>
+                      {!collapsed && (
+                        <span className={cn(
+                          "ml-4 text-[10px] font-bold uppercase tracking-widest transition-all",
+                          isActive ? "text-white" : "text-white/30 group-hover:text-white/60"
+                        )}>
+                          {item.label}
+                        </span>
+                      )}
+                    </Link>
+                  </TooltipTrigger>
+                  {collapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+                </Tooltip>
               );
             })}
           </nav>
         </div>
 
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn("absolute -right-3 top-20 z-10 h-6 w-6 border border-border bg-background shadow-md", isProfessional ? "rounded-none" : "rounded-full")}
+        <button
           onClick={toggleSidebar}
+          className="absolute -right-3 top-24 z-10 h-6 w-6 flex items-center justify-center bg-white rounded-full shadow-xl border border-black/5 text-[#121721] hover:scale-110 transition-transform hidden sm:flex"
         >
-        </Button>
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
 
         {!collapsed && (
-          <div className="px-4 py-2 border-t border-border/40">
-            <p className="text-[10px] text-muted-foreground font-medium text-center opacity-50">
-              v{packageInfo.version} - CRM SASS
-            </p>
+          <div className="px-4 py-4 text-center">
+             <div className="h-1 w-8 bg-white/10 rounded-full mx-auto mb-2" />
+             <p className="text-[8px] font-black uppercase tracking-widest text-white/20">
+               NextWave v2.0
+             </p>
           </div>
         )}
       </aside>

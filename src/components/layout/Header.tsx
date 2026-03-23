@@ -13,6 +13,8 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/utils";
 
 interface Notification {
@@ -30,6 +32,7 @@ interface HeaderProps {
 
 export function Header({ title, onMenuClick }: HeaderProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -107,33 +110,58 @@ export function Header({ title, onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6">
-      {/* Mobile Menu Trigger */}
-      <Button variant="ghost" size="icon" className="h-8 w-8 sm:hidden" onClick={onMenuClick}>
-        <Menu className="h-5 w-5" />
-      </Button>
+    <header className="sticky top-0 z-40 flex h-20 items-center justify-between gap-4 px-8 bg-transparent">
+      {/* Search & Tabs Container */}
+      <div className="flex items-center gap-8 flex-1">
+        {/* Mobile Menu Trigger */}
+        <Button variant="ghost" size="icon" className="h-10 w-10 sm:hidden rounded-full bg-white shadow-sm" onClick={onMenuClick}>
+          <Menu className="h-5 w-5" />
+        </Button>
 
-      {/* Title */}
-      {title && <h1 className="text-lg font-semibold text-foreground hidden md:block">{title}</h1>}
+        {/* Tabs - Estilo "Contacts" */}
+        <nav className="hidden lg:flex items-center bg-white/50 dark:bg-black/20 backdrop-blur-md p-1.5 rounded-full border border-black/5 dark:border-white/5 shadow-inner">
+          {[
+            { label: "Overview", href: "/", active: pathname === "/" },
+            { label: "Leads", href: "/leads", active: pathname === "/leads" },
+            { label: "Projetos", href: "/projetos", active: pathname === "/projetos" },
+            { label: "Financeiro", href: "/financeiro", active: pathname === "/financeiro" },
+          ].map((tab) => (
+            <Link 
+              key={tab.label} 
+              href={tab.href}
+              className={cn(
+                "px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all duration-300",
+                tab.active 
+                  ? "bg-[#121721] text-white shadow-lg shadow-black/20 scale-105" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
 
-      {/* Search */}
-      <div className="flex-1 max-w-md">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar clientes, serviços..." className="pl-9 h-8 bg-muted/50 border-0 focus-visible:ring-1" />
+        {/* Search */}
+        <div className="hidden md:flex flex-1 max-w-sm">
+          <div className="relative w-full group">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent-blue transition-colors" />
+            <Input 
+              placeholder="Pesquisar..." 
+              className="pl-11 h-11 bg-white/50 dark:bg-black/20 border-black/5 dark:border-white/5 rounded-full focus-visible:ring-accent-blue/20 transition-all placeholder:text-[10px] placeholder:uppercase placeholder:font-black placeholder:tracking-widest" 
+            />
+          </div>
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-4">
         {/* Notifications */}
         <DropdownMenu onOpenChange={(open) => { if (open) fetchNotifications(); }}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-              <Bell className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-11 w-11 relative bg-white/50 dark:bg-black/20 rounded-full border border-black/5 dark:border-white/5">
+              <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background" />
+                <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-accent-blue ring-4 ring-white dark:ring-[#121721]" />
               )}
-              <span className="sr-only">Notificações</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">

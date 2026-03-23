@@ -299,9 +299,8 @@ export default function ClientesPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog Criar/Editar */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingCliente ? "Editar Cliente" : "Novo Cliente"}</DialogTitle>
             <DialogDescription>

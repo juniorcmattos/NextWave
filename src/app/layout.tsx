@@ -7,11 +7,8 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ColorProvider } from "@/components/providers/ColorProvider";
 import { Toaster } from "sonner";
 import { Softphone } from "@/components/pbx/softphone";
-import { Outfit } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { headers } from "next/headers";
 import "./globals.css";
-
-const outfit = Outfit({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding();
@@ -29,9 +26,6 @@ export async function generateMetadata(): Promise<Metadata> {
 type AccentColor = "blue" | "orange" | "green" | "purple" | "rose" | "pink";
 type LayoutTheme = "default" | "professional";
 
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-
 const VALID_COLORS: AccentColor[] = ["blue", "orange", "green", "purple", "rose", "pink"];
 const VALID_LAYOUTS: LayoutTheme[] = ["default", "professional"];
 
@@ -42,7 +36,7 @@ async function getLicenseStatus() {
     });
     return license?.status || "active";
   } catch (e) {
-    return "active"; // Falha no banco não deve travar o sistema totalmente se for erro de conexão
+    return "active"; 
   }
 }
 
@@ -52,7 +46,6 @@ async function getBranding() {
       where: { id: "default" }
     });
   } catch (e: any) {
-    // Silencia erro de conexão durante o build
     if (e.message?.includes("Unable to open the database file") || e.code === 'P2024') {
       return null;
     }
@@ -67,46 +60,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headerList = headers();
-  const domain = headerList.get("host") || "";
-  const pathname = headerList.get("x-invoke-path") || ""; // Pode não ser confiável em todos os ambientes
-
-  // 1. Verificação de Licença (Trava White-Label)
-  const licenseStatus = await getLicenseStatus();
-  const branding = await getBranding();
-
-  // Se o sistema estiver suspenso e não estivermos na página de bloqueio
-  // Nota: Next.js server actions / middleware são melhores para isso, mas no layout funciona como última camada
-  // Para simplificar, vamos assumir que o usuário será bloqueado se o status for suspended
-
-  // Tenta carregar do banco se logado, senão usa cookies (flash prevention)
+  const initialColor = (cookies().get("nextwave-accent-color")?.value as AccentColor) || "blue";
+  const initialLayout = (cookies().get("nextwave-layout-theme")?.value as LayoutTheme) || "default";
   const session = await auth();
-  const cookieStore = cookies();
-
-  let dbColor = null;
-  let dbLayout = null;
-
-  if (session?.user?.id) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { accentColor: true, layoutTheme: true }
-      } as any);
-      if (user) {
-        dbColor = user.accentColor as AccentColor;
-        dbLayout = user.layoutTheme as LayoutTheme;
-      }
-    } catch (e: any) {
-      if (!e.message?.includes("Unable to open the database file")) {
-        console.error("Erro ao carregar tema do banco no layout", e.message);
-      }
-    }
-  }
-
-  const rawColor = cookieStore.get("nextwave-accent-color")?.value as AccentColor;
-  const rawLayout = cookieStore.get("nextwave-layout-theme")?.value as LayoutTheme;
-
-  const initialColor: AccentColor = VALID_COLORS.includes(dbColor || rawColor) ? (dbColor || rawColor as any) : "blue";
-  const initialLayout: LayoutTheme = VALID_LAYOUTS.includes(dbLayout || rawLayout) ? (dbLayout || rawLayout as any) : "default";
 
   return (
     <html
@@ -115,7 +71,7 @@ export default async function RootLayout({
       data-color={initialColor}
       data-layout={initialLayout}
     >
-      <body className={cn("antialiased", outfit.className)}>
+      <body className="antialiased font-sans">
         <SessionProvider>
           <ThemeProvider
             attribute="class"

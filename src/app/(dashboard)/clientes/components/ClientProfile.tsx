@@ -239,72 +239,109 @@ export function ClientProfile({ clientId, open, onOpenChange, onEdit }: ClientPr
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col gap-0 overflow-hidden bg-slate-50 dark:bg-slate-950/20 backdrop-blur-3xl border-none shadow-2xl rounded-3xl">
-                    {/* Header */}
-                    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-6 border-b border-border/40 flex items-start justify-between">
-                        <div className="flex items-center gap-5">
-                            <Avatar className="h-20 w-20 border-4 border-white dark:border-slate-800 shadow-xl">
-                                <AvatarFallback className="bg-indigo-600 text-white text-3xl font-bold">
+                <DialogContent className="max-w-[95vw] lg:max-w-7xl h-[90vh] p-0 flex flex-col gap-0 overflow-hidden bg-[#F0F4F8] dark:bg-slate-950 border-none shadow-2xl rounded-[2.5rem]">
+                    {/* Header: Compact & Premium */}
+                    <div className="glass-edge bg-white/40 dark:bg-slate-900/40 p-6 flex items-center justify-between border-b border-white/20">
+                        <div className="flex items-center gap-6">
+                            <Avatar className="h-16 w-16 border-4 border-white shadow-xl">
+                                <AvatarFallback className="bg-accent-blue text-white text-2xl font-black">
                                     {getInitials(client?.name || "")}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-3xl font-extrabold tracking-tight">{client?.name}</h2>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-8 w-8 rounded-full" 
-                                        onClick={() => onEdit?.(client)}
-                                    >
-                                        <Edit className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium uppercase tracking-wider">
-                                    <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> {client?.company || "Pessoa Física"}</span>
-                                    <span className="h-1 w-1 rounded-full bg-slate-400" />
-                                    <Badge variant={client?.status === "ativo" ? "success" : "secondary"}>{client?.status}</Badge>
-                                    <span className="h-1 w-1 rounded-full bg-slate-400" />
-                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-500">ID: {client?.registrationId || "N/A"}</span>
+                            <div>
+                                <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-1">{client?.name}</h2>
+                                <div className="flex items-center gap-3">
+                                    <Badge className="bg-accent-blue/10 text-accent-blue border-none font-black uppercase text-[10px] tracking-widest px-3 py-1">
+                                        {client?.status || "PROSPECTO"}
+                                    </Badge>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">ID: {client?.registrationId || "N/A"}</span>
                                 </div>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="rounded-full hover:bg-white/20 transition-all">
                             <X className="h-6 w-6" />
                         </Button>
                     </div>
 
-                    <div className="flex-1 overflow-hidden">
-                        <ScrollArea className="h-full w-full">
-                            <div className="p-8">
-                                <ClientDashboardTabs
-                                    client={client}
-                                    renderCadastro={() => <ClientCadastroTab client={client} onEdit={() => onEdit?.(client)} />}
-                                    renderServicos={() => (
-                                        <ClientServicosTab
-                                            services={client?.services || []}
-                                            openCreateSvc={openCreateSvc}
-                                            formatCurrency={formatCurrency}
-                                            onCancelSvc={(id: string) => setCancelSvcId(id)}
-                                        />
-                                    )}
-                                    renderFinanceiro={() => (
-                                        <ClientFinanceiroTab
-                                          transactions={transactions}
-                                          totalReceita={totalReceita}
-                                          totalDespesa={totalDespesa}
-                                          totalPendente={totalPendente}
-                                          openCreateTx={openCreateTx}
-                                          openEditTx={openEditTx}
-                                          setDeleteTxId={setDeleteTxId}
-                                          formatCurrency={formatCurrency}
-                                          clientPhone={client?.phone}
-                                          clientName={client?.name}
-                                        />
-                                    )}
-                                />
+                    <div className="flex flex-1 overflow-hidden">
+                        {/* Main Content (Left) */}
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                            <ScrollArea className="flex-1">
+                                <div className="p-8">
+                                    <ClientDashboardTabs
+                                        client={client}
+                                        renderCadastro={() => <ClientCadastroTab client={client} onEdit={() => onEdit?.(client)} />}
+                                        renderServicos={() => (
+                                            <ClientServicosTab
+                                                services={client?.services || []}
+                                                openCreateSvc={openCreateSvc}
+                                                formatCurrency={formatCurrency}
+                                                onCancelSvc={(id: string) => setCancelSvcId(id)}
+                                            />
+                                        )}
+                                        renderFinanceiro={() => (
+                                            <ClientFinanceiroTab
+                                                transactions={transactions}
+                                                totalReceita={totalReceita}
+                                                totalDespesa={totalDespesa}
+                                                totalPendente={totalPendente}
+                                                openCreateTx={openCreateTx}
+                                                openEditTx={openEditTx}
+                                                setDeleteTxId={setDeleteTxId}
+                                                formatCurrency={formatCurrency}
+                                                clientPhone={client?.phone}
+                                                clientName={client?.name}
+                                            />
+                                        )}
+                                    />
+                                </div>
+                            </ScrollArea>
+                        </div>
+
+                        {/* Right Sidebar (Quick Actions) */}
+                        <div className="w-80 bg-white/20 border-l border-white/20 p-6 hidden lg:flex flex-col gap-8 overflow-y-auto">
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Ações Rápidas</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Button variant="outline" className="h-20 flex-col gap-2 rounded-2xl border-white/40 hover:bg-white/60 transition-all">
+                                        <MessageSquare className="h-5 w-5 text-accent-blue" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">WhatsApp</span>
+                                    </Button>
+                                    <Button variant="outline" className="h-20 flex-col gap-2 rounded-2xl border-white/40 hover:bg-white/60 transition-all">
+                                        <Phone className="h-5 w-5 text-accent-teal" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Ligar</span>
+                                    </Button>
+                                    <Button variant="outline" className="h-20 flex-col gap-2 rounded-2xl border-white/40 hover:bg-white/60 transition-all">
+                                        <Mail className="h-5 w-5 text-accent-yellow" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Email</span>
+                                    </Button>
+                                    <Button variant="outline" className="h-20 flex-col gap-2 rounded-2xl border-white/40 hover:bg-white/60 transition-all">
+                                        <FileText className="h-5 w-5 text-slate-900" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Contrato</span>
+                                    </Button>
+                                </div>
                             </div>
-                        </ScrollArea>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Resumo Financeiro</h4>
+                                <div className="premium-card p-5 space-y-4">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-none mb-2">Total Pago</p>
+                                        <p className="text-2xl font-black tracking-tighter text-accent-teal">{formatCurrency(totalReceita)}</p>
+                                    </div>
+                                    <div className="pt-4 border-t border-black/5">
+                                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-none mb-2">Pendente</p>
+                                        <p className="text-xl font-black tracking-tighter text-rose-500">{formatCurrency(totalPendente)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-auto">
+                                <Button className="w-full bg-[#121721] text-white rounded-2xl h-12 font-black uppercase tracking-widest transition-transform hover:scale-[1.02]">
+                                    Gerar Orçamento
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

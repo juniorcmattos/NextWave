@@ -7,6 +7,8 @@ import { TopClients } from "@/components/dashboard/TopClients";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { Badge } from "@/components/ui/badge";
 import { FinanceWidget, WhatsAppWidget, BackupWidget, TasksWidget } from "@/components/dashboard/DashboardWidgets";
+import { KPIStrip } from "@/components/dashboard/KPIStrip";
+import { DealCard } from "@/components/dashboard/DealCard";
 
 async function getDashboardData(userId: string) {
   const agora = new Date();
@@ -145,44 +147,67 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative min-h-screen p-4 md:p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 neo-blur">
-      {/* Top Section: "Customer Information" Reference Aesthetic */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start justify-between">
+      {/* Top Section */}
+      <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-10 w-10 rounded-2xl bg-accent-blue flex items-center justify-center shadow-lg shadow-accent-blue/20">
               <LayoutGrid className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-4xl font-black tracking-tighter text-[#121721] dark:text-white">
-              Painel <span className="text-primary">Geral</span>
+            <h1 className="text-4xl font-black tracking-tighter text-[#121721] dark:text-white uppercase transition-all">
+              Painel <span className="text-accent-blue">Geral</span>
             </h1>
           </div>
-          <p className="text-muted-foreground text-sm font-medium mt-2">
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">
             {saudacao()}, Bem-vindo ao seu centro de comando operacional.
           </p>
         </div>
 
-        {/* Header Stats Group (similar to search area in prints) */}
-        <div className="flex flex-wrap gap-4 items-center">
-            <div className="glass px-6 py-3 rounded-3xl flex items-center gap-4">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <DollarSign className="h-4 w-4" />
-                </div>
-                <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Volume Total</p>
-                    <p className="text-lg font-black tracking-tighter">R$ {stats.totalReceita.toLocaleString()}</p>
-                </div>
-                <div className="ml-4 text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">+11% week</div>
+        {/* KPI Strip */}
+        <KPIStrip />
+
+        {/* Sales Pipeline Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black uppercase tracking-tighter text-[#121721] dark:text-white">
+              Pipeline de <span className="text-accent-blue">Vendas</span>
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-accent-blue animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Live Updates</span>
             </div>
-            <div className="glass px-6 py-3 rounded-3xl flex items-center gap-4">
-                <div className="h-8 w-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
-                    <Users className="h-4 w-4" />
-                </div>
-                <div>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Novos Leads</p>
-                    <p className="text-lg font-black tracking-tighter">+{stats.totalClientes}</p>
-                </div>
-                <div className="ml-4 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+12 today</div>
-            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <DealCard 
+              title="Redesign UX/UI" 
+              client="NextWave Corp" 
+              amount="R$ 12.500" 
+              date="12/05" 
+              variant="blue"
+            />
+            <DealCard 
+              title="Consultoria SEO" 
+              client="Tech Glow" 
+              amount="R$ 4.200" 
+              date="14/05" 
+              variant="yellow"
+            />
+            <DealCard 
+              title="App Mobile" 
+              client="Studio 9" 
+              amount="R$ 45.000" 
+              date="15/05" 
+              variant="teal"
+            />
+            <DealCard 
+              title="Manutenção" 
+              client="Logística X" 
+              amount="R$ 2.800" 
+              date="16/05" 
+              variant="black"
+            />
+          </div>
         </div>
       </div>
 

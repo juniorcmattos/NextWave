@@ -1,5 +1,5 @@
 "use client";
-
+import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import {
     DndContext,
@@ -21,6 +21,12 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+// Local helper to avoid cn ReferenceError
+const localCn = (...inputs: any[]) => {
+    return inputs.filter(Boolean).join(" ");
+};
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -139,19 +145,18 @@ function DroppableStage({ stage, children, count }: { stage: typeof STAGES[0]; c
         <div className="flex-shrink-0 w-80 flex flex-col gap-6 animate-in fade-in duration-500">
             <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                    <div className={cn("h-3 w-3 rounded-full shadow-lg", stage.color)} />
+                    <div className={`h-3 w-3 rounded-full shadow-lg ${stage.color}`} />
                     <h3 className="font-black text-sm uppercase tracking-widest text-[#121721] dark:text-white opacity-80">{stage.title}</h3>
                 </div>
                 <div className="h-6 w-10 flex items-center justify-center font-black text-[10px] bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-full shadow-sm">{count}</div>
             </div>
             <div
                 ref={setNodeRef}
-                className={cn(
-                    "flex flex-col gap-4 min-h-[600px] p-3 rounded-[2rem] border-2 border-dashed transition-all duration-300",
+                className={`flex flex-col gap-4 min-h-[600px] p-3 rounded-[2rem] border-2 border-dashed transition-all duration-300 ${
                     isOver 
                         ? "border-primary/40 bg-primary/5 shadow-inner" 
                         : "border-transparent bg-[#121721]/5 dark:bg-white/5 hover:bg-[#121721]/10 dark:hover:bg-white/10"
-                )}
+                }`}
             >
                 {children}
             </div>
