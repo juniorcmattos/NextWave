@@ -117,7 +117,7 @@ function KanbanCardComponent({ task }: KanbanCardProps) {
               <Avatar className="h-6 w-6 border-2 border-white ring-2 ring-primary/10">
                 <AvatarImage src={task.assignee.avatar || undefined} />
                 <AvatarFallback className="text-[8px] font-black uppercase">
-                  {getInitials(task.assignee.name)}
+                  {getInitials(task.assignee.name || "")}
                 </AvatarFallback>
               </Avatar>
             ) : (
