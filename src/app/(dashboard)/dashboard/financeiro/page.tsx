@@ -86,7 +86,10 @@ async function getFinancialData(userId: string) {
     totalAno: Number(totalAno._sum.amount ?? 0),
     variacao,
     chartData,
-    ultimasTransacoes,
+    ultimasTransacoes: ultimasTransacoes.map(t => ({
+      ...t,
+      amount: Number(t.amount)
+    })),
   };
 }
 
