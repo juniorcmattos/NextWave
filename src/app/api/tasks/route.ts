@@ -73,7 +73,7 @@ export async function PATCH(req: Request) {
             },
         });
 
-        if (task) {
+        if (task && task.columnId) {
             const column = await prisma.taskColumn.findUnique({
                 where: { id: task.columnId },
                 include: { project: true }
