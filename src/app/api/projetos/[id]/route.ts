@@ -43,7 +43,7 @@ export async function PATCH(
     if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     try {
-        const { name, description, color, dueDate } = await req.json();
+        const { name, description, color, dueDate, status } = await req.json();
 
         const project = await prisma.project.update({
             where: {
@@ -53,6 +53,7 @@ export async function PATCH(
                 name,
                 description,
                 color,
+                status,
                 dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : undefined
             }
         });

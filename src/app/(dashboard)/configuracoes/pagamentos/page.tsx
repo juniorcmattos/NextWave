@@ -118,6 +118,59 @@ export default function PagamentosSettings() {
                 </CardContent>
             </Card>
 
+            {/* Gateway: AbacatePay */}
+            <Card className="overflow-hidden border-green-500/10 shadow-lg shadow-green-500/5">
+                <div className="h-1 bg-green-500" />
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <img src="https://abacatepay.com/favicon.ico" className="w-6 h-6 rounded" alt="AbacatePay" />
+                            <div>
+                                <CardTitle>AbacatePay</CardTitle>
+                                <CardDescription>O gateway de pagamentos para desenvolvedores.</CardDescription>
+                            </div>
+                        </div>
+                        <Switch
+                            checked={configs.find(c => c.provider === "abacatepay")?.isActive || false}
+                            onCheckedChange={(val) => {
+                                const current = configs.find(c => c.provider === "abacatepay") || { provider: "abacatepay", name: "AbacatePay", credentials: "{}" };
+                                handleSave("abacatepay", { ...current, isActive: val });
+                            }}
+                        />
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="abacate-key">Token de API (Bearer)</Label>
+                        <Input
+                            id="abacate-key"
+                            type="password"
+                            placeholder="Bearer abc..."
+                            defaultValue={JSON.parse(configs.find(c => c.provider === "abacatepay")?.credentials || "{}").apiKey || ""}
+                            onBlur={(e) => {
+                                const current = configs.find(c => c.provider === "abacatepay") || { provider: "abacatepay", name: "AbacatePay", credentials: "{}" };
+                                const creds = JSON.parse(current.credentials || "{}");
+                                creds.apiKey = e.target.value;
+                                handleSave("abacatepay", { ...current, credentials: JSON.stringify(creds) });
+                            }}
+                        />
+                    </div>
+
+                    <div className="bg-muted/50 p-4 rounded-xl border border-border flex gap-3 text-sm">
+                        <Zap className="h-5 w-5 text-amber-500 shrink-0" />
+                        <div>
+                            <p className="font-bold">Webhook Automático</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Configure este URL no painel da AbacatePay:
+                                <code className="block mt-2 p-1 bg-background rounded border font-mono text-[10px]">
+                                    {typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/payments/abacatepay` : ""}
+                                </code>
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Placeholder for Next Gateway */}
             <Card className="opacity-60 border-dashed">
                 <CardHeader>
