@@ -12,28 +12,28 @@
 
 @layer base {
   :root {
-    --background: 220 20% 93%; /* Cinza azulado mais escuro — contraste com cards */
-    --foreground: 222 47% 8%;  /* Texto quase preto */
-    --card: 0 0% 100%;         /* Cards brancos — contraste alto com fundo */
-    --card-foreground: 222 47% 8%;
+    --background: 0 0% 97%;           /* Branco levemente acinzentado — suave */
+    --foreground: 222 40% 10%;        /* Texto escuro com toque azulado */
+    --card: 0 0% 100%;                /* Cards 100% brancos */
+    --card-foreground: 222 40% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 8%;
-    --primary: 225 85% 52%;    /* Azul ligeiramente mais saturado */
+    --popover-foreground: 222 40% 10%;
+    --primary: 225 85% 52%;           /* Azul vibrante */
     --primary-foreground: 0 0% 100%;
-    --secondary: 195 39% 40%;
+    --secondary: 195 39% 42%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 215 20% 85%;      /* Muted mais escuro */
-    --muted-foreground: 215 20% 35%; /* Texto secundário bem legível */
+    --muted: 220 15% 92%;             /* Fundo de seções secundárias */
+    --muted-foreground: 215 20% 42%;  /* Texto secundário legível */
     --accent: 56 84% 55%;
-    --accent-foreground: 222 47% 8%;
-    --destructive: 0 84.2% 55%;
+    --accent-foreground: 222 40% 10%;
+    --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142.1 70% 32%;
+    --success: 142 70% 32%;
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 42%;
     --warning-foreground: 0 0% 100%;
-    --border: 214 25% 82%;     /* Bordas visíveis */
-    --input: 214 25% 88%;
+    --border: 220 15% 88%;            /* Borda suave mas visível */
+    --input: 220 15% 94%;             /* Input com fundo distinto */
     --ring: 225 85% 52%;
     --sidebar: 222 47% 10%;
     --radius: 1.5rem;
