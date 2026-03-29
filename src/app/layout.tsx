@@ -78,8 +78,8 @@ export default async function RootLayout({
           <SessionProvider>
             <ThemeProvider
               attribute="class"
-              defaultTheme="light"
-              enableSystem
+              defaultTheme="dark"
+              enableSystem={false}
               disableTransitionOnChange
             >
               <ColorProvider initialColor={initialColor} initialLayout={initialLayout}>

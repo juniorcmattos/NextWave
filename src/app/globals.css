@@ -12,31 +12,31 @@
 
 @layer base {
   :root {
-    --background: 210 20% 96%; /* #F0F4F8 - Gelo */
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --background: 220 20% 93%; /* Cinza azulado mais escuro — contraste com cards */
+    --foreground: 222 47% 8%;  /* Texto quase preto */
+    --card: 0 0% 100%;         /* Cards brancos — contraste alto com fundo */
+    --card-foreground: 222 47% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 225 85% 57%; /* #3462EE - Blue */
+    --popover-foreground: 222 47% 8%;
+    --primary: 225 85% 52%;    /* Azul ligeiramente mais saturado */
     --primary-foreground: 0 0% 100%;
-    --secondary: 195 39% 47%; /* #4A91A8 - Teal */
+    --secondary: 195 39% 40%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 20% 90%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 56 84% 61%; /* #EFE347 - Yellow */
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 355.7 100% 97.3%;
-    --warning: 45 93% 47%;
-    --warning-foreground: 26 83.3% 14.1%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 225 85% 57%;
-    --sidebar: 222 47% 10%; /* #121721 - Dark Navy */
-    --radius: 1.5rem; /* 24px */
+    --muted: 215 20% 85%;      /* Muted mais escuro */
+    --muted-foreground: 215 20% 35%; /* Texto secundário bem legível */
+    --accent: 56 84% 55%;
+    --accent-foreground: 222 47% 8%;
+    --destructive: 0 84.2% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142.1 70% 32%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 42%;
+    --warning-foreground: 0 0% 100%;
+    --border: 214 25% 82%;     /* Bordas visíveis */
+    --input: 214 25% 88%;
+    --ring: 225 85% 52%;
+    --sidebar: 222 47% 10%;
+    --radius: 1.5rem;
   }
 
   .dark {
